@@ -1,5 +1,6 @@
 {
-    "files.exclude": {
-        "**/*.meta": true
-    }
+  "files.exclude": {
+    "**/*.meta": true
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

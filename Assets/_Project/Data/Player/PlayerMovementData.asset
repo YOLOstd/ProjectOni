@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d65c35c3cec30054781dc44ebc7036fb, type: 3}
+  m_Name: PlayerMovementData
+  m_EditorClassIdentifier: Assembly-CSharp::TarodevController.PlayerMovementData
+  PlayerLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  WallLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  SnapInput: 1
+  VerticalDeadZoneThreshold: 0.3
+  HorizontalDeadZoneThreshold: 0.1
+  MaxSpeed: 10
+  CrouchSpeedModifier: 0.5
+  Acceleration: 120
+  GroundDeceleration: 55
+  AirDeceleration: 30
+  GroundingForce: -1.5
+  GrounderDistance: 0.05
+  JumpPower: 25
+  MaxFallSpeed: 27
+  FallAcceleration: 110
+  JumpEndEarlyGravityModifier: 1
+  CoyoteTime: 0.2
+  JumpBuffer: 0.2
+  MaxAirJumps: 1
+  WallJumpPower: 25
+  WallSlideSpeed: 5
+  DodgePower: 32
+  DodgeDuration: 0.12
+  DodgeCooldown: 0.5
