@@ -12,12 +12,14 @@ namespace TarodevController
     /// You can play and compete for best times here: https://tarodev.itch.io/extended-ultimate-2d-controller
     /// If you hve any questions or would like to brag about your score, come to discord: https://discord.gg/tarodev
     /// </summary>
-    [RequireComponent(typeof(Rigidbody2D), typeof(Collider2D))]
+    [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerController : MonoBehaviour, IPlayerController
     {
         [SerializeField] private PlayerMovementData _stats;
+        [SerializeField] private CapsuleCollider2D _bodyCol;
+        [SerializeField] private BoxCollider2D _feetCol;
+        
         private Rigidbody2D _rb;
-        private CapsuleCollider2D _col;
         private PlayerInput _playerInput;
         private InputAction _moveAction, _jumpAction, _dodgeAction, _crouchAction;
         
@@ -47,22 +49,26 @@ namespace TarodevController
         private bool _dodging;
         private float _dodgeTimer;
         private float _dodgeCooldownTimer;
+        private float _activeDodgePower;
         private Vector2 _dodgeDir;
         private bool _onWall;
         private int _lastWallDir;
         private bool _crouching;
+        private bool _hasAirDodged;
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
-            _col = GetComponent<CapsuleCollider2D>();
             _playerInput = GetComponent<PlayerInput>();
+
+            // Fallbacks if not assigned in Inspector
+            if (_bodyCol == null) _bodyCol = GetComponentInChildren<CapsuleCollider2D>();
+            if (_feetCol == null) _feetCol = GetComponentInChildren<BoxCollider2D>();
 
             _moveAction = _playerInput.actions["Move"];
             _jumpAction = _playerInput.actions["Jump"];
             _dodgeAction = _playerInput.actions["Dodge"];
             _crouchAction = _playerInput.actions["Crouch"];
-
         }
 
         private void Update()
@@ -94,7 +100,7 @@ namespace TarodevController
                 _timeJumpWasPressed = _time;
             }
 
-            if (_frameInput.DodgeDown && _canDodge)
+            if (_frameInput.DodgeDown && _canDodge && (_grounded || !_hasAirDodged))
             {
                 _dodgeToConsume = true;
             }
@@ -138,16 +144,19 @@ namespace TarodevController
             // Ground and Ceiling (collides with everything except the player)
             var groundMask = ~_stats.PlayerLayer;
 
-            bool groundHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, _stats.GrounderDistance, groundMask);
-            bool ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, _stats.GrounderDistance, groundMask);
+            // Feet use a BoxCast to prevent sliding off edges
+            bool groundHit = Physics2D.BoxCast(_feetCol.bounds.center, _feetCol.size, 0, Vector2.down, _stats.GrounderDistance, groundMask);
+            
+            // Body uses CapsuleCasts for walls and ceiling to ensure smooth sliding
+            bool ceilingHit = Physics2D.CapsuleCast(_bodyCol.bounds.center, _bodyCol.size, _bodyCol.direction, 0, Vector2.up, _stats.GrounderDistance, groundMask);
 
             // Walls
-            bool leftWall = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.left, _stats.GrounderDistance, _stats.WallLayer);
-            bool rightWall = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.right, _stats.GrounderDistance, _stats.WallLayer);
+            bool leftWall = Physics2D.CapsuleCast(_bodyCol.bounds.center, _bodyCol.size, _bodyCol.direction, 0, Vector2.left, _stats.GrounderDistance, _stats.WallLayer);
+            bool rightWall = Physics2D.CapsuleCast(_bodyCol.bounds.center, _bodyCol.size, _bodyCol.direction, 0, Vector2.right, _stats.GrounderDistance, _stats.WallLayer);
 
 #if UNITY_EDITOR
             // Debug visualization
-            Debug.DrawLine(_col.bounds.center, _col.bounds.center + Vector3.down * (_col.size.y / 2 + _stats.GrounderDistance), groundHit ? Color.green : Color.red);
+            Debug.DrawLine(_feetCol.bounds.center, _feetCol.bounds.center + Vector3.down * (_feetCol.size.y / 2 + _stats.GrounderDistance), groundHit ? Color.green : Color.red);
 #endif
 
             _onWall = leftWall || rightWall;
@@ -164,6 +173,7 @@ namespace TarodevController
                 _bufferedJumpUsable = true;
                 _endedJumpEarly = false;
                 _canDodge = true;
+                _hasAirDodged = false;
                 _airJumpsRemaining = _stats.MaxAirJumps;
                 GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
             }
@@ -193,12 +203,16 @@ namespace TarodevController
 
         private void HandleJump()
         {
-            if (!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && _rb.linearVelocity.y > 0) _endedJumpEarly = true;
+            if (!_endedJumpEarly && !_grounded && !_frameInput.JumpHeld && _rb.linearVelocity.y > 0)
+            {
+                _endedJumpEarly = true;
+                _frameVelocity.y *= _stats.JumpCutMultiplier;
+            }
 
             if (!_jumpToConsume && !HasBufferedJump) return;
 
             // Strict Wall Jump Condition: Moving down while pushing into wall
-            bool canWallJump = _onWall && _frameVelocity.y < 0 && _frameInput.Move.x != 0 && Mathf.Sign(_frameInput.Move.x) == _lastWallDir;
+            bool canWallJump = _onWall && _rb.linearVelocity.y < 0 && _frameInput.Move.x != 0 && Mathf.Sign(_frameInput.Move.x) == _lastWallDir;
 
             if (_grounded || CanUseCoyote) ExecuteJump(false);
             else if (canWallJump) ExecuteJump(true);
@@ -271,7 +285,6 @@ namespace TarodevController
                 else
                 {
                     var inAirGravity = _stats.FallAcceleration;
-                    if (_endedJumpEarly && _frameVelocity.y > 0) inAirGravity *= _stats.JumpEndEarlyGravityModifier;
                     _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, inAirGravity * Time.fixedDeltaTime);
                 }
             }
@@ -289,12 +302,16 @@ namespace TarodevController
                 _dodgeTimer = _stats.DodgeDuration;
                 _dodgeCooldownTimer = _stats.DodgeCooldown;
                 _dodgeToConsume = false;
+
+                _activeDodgePower = _grounded ? _stats.DodgePower : _stats.AirDodgePower;
+                if (!_grounded) _hasAirDodged = true;
+                
                 DodgingChanged?.Invoke();
             }
 
             if (_dodging)
             {
-                _frameVelocity = _dodgeDir * _stats.DodgePower;
+                _frameVelocity = _dodgeDir * _activeDodgePower;
                 _dodgeTimer -= Time.fixedDeltaTime;
 
                 if (_dodgeTimer <= 0)
@@ -330,10 +347,10 @@ namespace TarodevController
         {
             if (_frameVelocity.y <= 0) return;
 
-            // Simple nudge if we hit a ceiling corner
-            var headY = _col.bounds.max.y;
-            var leftHit = Physics2D.Raycast(new Vector2(_col.bounds.min.x, headY + 0.05f), Vector2.up, 0.1f, ~_stats.PlayerLayer);
-            var rightHit = Physics2D.Raycast(new Vector2(_col.bounds.max.x, headY + 0.05f), Vector2.up, 0.1f, ~_stats.PlayerLayer);
+            // Simple nudge if we hit a ceiling corner using body capsule
+            var headY = _bodyCol.bounds.max.y;
+            var leftHit = Physics2D.Raycast(new Vector2(_bodyCol.bounds.min.x, headY + 0.05f), Vector2.up, 0.1f, ~_stats.PlayerLayer);
+            var rightHit = Physics2D.Raycast(new Vector2(_bodyCol.bounds.max.x, headY + 0.05f), Vector2.up, 0.1f, ~_stats.PlayerLayer);
 
             if (leftHit ^ rightHit)
             {

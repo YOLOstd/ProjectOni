@@ -50,8 +50,8 @@ namespace TarodevController
         [Tooltip("The player's capacity to gain fall speed. a.k.a. In Air Gravity")]
         public float FallAcceleration = 110;
 
-        [Tooltip("The gravity multiplier added when jump is released early")]
-        public float JumpEndEarlyGravityModifier = 3;
+        [Tooltip("The percentage of vertical velocity retained when the jump button is released early. 0.5 means 50% speed reduction."), Range(0f, 1f)]
+        public float JumpCutMultiplier = 0.5f;
 
         [Tooltip("The time before coyote jump becomes unusable. Coyote jump allows jump to execute even after leaving a ledge")]
         public float CoyoteTime = .15f;
@@ -68,8 +68,11 @@ namespace TarodevController
         [Tooltip("The speed at which the player slides down walls"), Range(0.1f, 20f)]
         public float WallSlideSpeed = 5;
 
-        [Header("DODGE")] [Tooltip("The velocity applied when dodging")]
+        [Header("DODGE")] [Tooltip("The velocity applied when dodging on the ground")]
         public float DodgePower = 30;
+
+        [Tooltip("The velocity applied when dodging in the air")]
+        public float AirDodgePower = 20;
 
         [Tooltip("How long the dodge lasts in seconds")]
         public float DodgeDuration = 0.2f;

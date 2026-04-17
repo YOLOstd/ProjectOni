@@ -24,19 +24,21 @@ MonoBehaviour:
   MaxSpeed: 10
   CrouchSpeedModifier: 0.5
   Acceleration: 120
-  GroundDeceleration: 55
+  GroundDeceleration: 65
   AirDeceleration: 30
   GroundingForce: -1.5
   GrounderDistance: 0.05
-  JumpPower: 25
+  JumpPower: 20
   MaxFallSpeed: 27
-  FallAcceleration: 110
-  JumpEndEarlyGravityModifier: 1
+  FallAcceleration: 80
+  JumpCutMultiplier: 0.5
   CoyoteTime: 0.2
   JumpBuffer: 0.2
   MaxAirJumps: 1
-  WallJumpPower: 25
+  WallJumpPower: 20
   WallSlideSpeed: 5
-  DodgePower: 32
+  DodgePower: 28
+  AirDodgePower: 18
   DodgeDuration: 0.12
   DodgeCooldown: 0.5
+  DodgeEndSpeed: 15
