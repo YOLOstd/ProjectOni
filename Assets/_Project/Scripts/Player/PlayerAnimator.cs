@@ -1,6 +1,7 @@
 using UnityEngine;
+using ProjectOni.Player;
 
-namespace TarodevController
+namespace ProjectOni.Player
 {
     /// <summary>
     /// VERY primitive animator example.
@@ -11,13 +12,9 @@ namespace TarodevController
         private Animator _anim;
 
         [SerializeField] private SpriteRenderer _sprite;
-        [SerializeField] private Transform _container;
 
         [Header("Settings")] [SerializeField, Range(1f, 3f)]
         private float _maxIdleSpeed = 2;
-
-        [SerializeField] private float _maxTilt = 5;
-        [SerializeField] private float _tiltSpeed = 20;
 
         [Header("Particles")] [SerializeField] private ParticleSystem _jumpParticles;
         [SerializeField] private ParticleSystem _launchParticles;
@@ -29,14 +26,16 @@ namespace TarodevController
         private AudioClip[] _footsteps;
 
         private AudioSource _source;
-        private IPlayerController _player;
+        private PlayerController _player;
         private bool _grounded;
         private ParticleSystem.MinMaxGradient _currentGradient;
+        
+        private System.Collections.Generic.HashSet<int> _validParameters = new();
 
         private void Awake()
         {
             _source = GetComponent<AudioSource>();
-            _player = GetComponentInParent<IPlayerController>();
+            _player = GetComponentInParent<PlayerController>();
         }
 
         private void OnEnable()
@@ -46,7 +45,16 @@ namespace TarodevController
             _player.DodgingChanged += OnDodgingChanged;
             _player.CrouchingChanged += OnCrouchingChanged;
 
-            _moveParticles.Play();
+            CacheParameters();
+
+            if (_moveParticles != null) _moveParticles.Play();
+        }
+
+        private void CacheParameters()
+        {
+            _validParameters.Clear();
+            if (_anim == null) return;
+            foreach (var param in _anim.parameters) _validParameters.Add(param.nameHash);
         }
 
         private void OnDisable()
@@ -56,7 +64,7 @@ namespace TarodevController
             _player.DodgingChanged -= OnDodgingChanged;
             _player.CrouchingChanged -= OnCrouchingChanged;
 
-            _moveParticles.Stop();
+            if (_moveParticles != null) _moveParticles.Stop();
         }
 
         private void Update()
@@ -65,75 +73,77 @@ namespace TarodevController
 
             DetectGroundColor();
             HandleSpriteFlip();
-            HandleIdleSpeed();
-            HandleCharacterTilt();
+            HandleMovementStats();
             UpdateWallVisuals();
         }
 
         private void UpdateWallVisuals()
         {
-            _anim.SetBool(WallSlidingKey, _player.IsWallSliding && !_player.IsCrouching);
-            _anim.SetBool(CrouchingKey, _player.IsCrouching);
-            _anim.SetBool(DodgingKey, _player.IsDodging);
+            SafeSetBool(WallSlidingKey, _player.IsWallSliding && !_player.IsCrouching);
+            SafeSetBool(CrouchingKey, _player.IsCrouching);
+            SafeSetBool(DodgingKey, _player.IsDodging);
         }
 
         private void HandleSpriteFlip()
         {
-            if (_player.FrameInput.x != 0) _sprite.flipX = _player.FrameInput.x < 0;
+            if (_player.GetComponent<InputReader>().MoveDirection.x != 0) 
+                _sprite.flipX = _player.GetComponent<InputReader>().MoveDirection.x < 0;
         }
 
-        private void HandleIdleSpeed()
+        private void HandleMovementStats()
         {
-            var inputStrength = Mathf.Abs(_player.FrameInput.x);
-            _anim.SetFloat(IdleSpeedKey, Mathf.Lerp(1, _maxIdleSpeed, inputStrength));
-            _moveParticles.transform.localScale = Vector3.MoveTowards(_moveParticles.transform.localScale, Vector3.one * inputStrength, 2 * Time.deltaTime);
-        }
+            var velocity = _player.CurrentVelocity;
+            var inputStrength = Mathf.Abs(_player.GetComponent<InputReader>().MoveDirection.x);
 
-        private void HandleCharacterTilt()
-        {
-            if (_player.IsDodging)
-            {
-                _container.transform.up = Vector3.up;
-                return;
-            }
+            // MoveSpeed for Idle -> Run transition
+            SafeSetFloat(MoveSpeedKey, Mathf.Abs(velocity.x));
+            
+            // VerticalVelocity for Jump -> Fall transition
+            SafeSetFloat(VerticalVelocityKey, velocity.y);
 
-            var runningTilt = _grounded ? Quaternion.Euler(0, 0, _maxTilt * _player.FrameInput.x) : Quaternion.identity;
-            _container.transform.up = Vector3.RotateTowards(_container.transform.up, runningTilt * Vector2.up, _tiltSpeed * Time.deltaTime, 0f);
+            // Keep IdleSpeed for potential animation variance
+            SafeSetFloat(IdleSpeedKey, Mathf.Lerp(1, _maxIdleSpeed, inputStrength));
+
+            if (_moveParticles != null) 
+                _moveParticles.transform.localScale = Vector3.MoveTowards(_moveParticles.transform.localScale, Vector3.one * inputStrength, 2 * Time.deltaTime);
         }
 
         private void OnJumped()
         {
-            _anim.SetTrigger(JumpKey);
-            _anim.ResetTrigger(GroundedKey);
+            SafeSetTrigger(JumpKey);
+            SafeResetTrigger(GroundedKey);
 
 
             if (_grounded) // Avoid coyote
             {
                 SetColor(_jumpParticles);
                 SetColor(_launchParticles);
-                _jumpParticles.Play();
+                if (_jumpParticles != null) _jumpParticles.Play();
             }
         }
 
         private void OnGroundedChanged(bool grounded, float impact)
         {
             _grounded = grounded;
+            SafeSetBool(GroundedBoolKey, grounded);
             
             if (grounded)
             {
                 DetectGroundColor();
                 SetColor(_landParticles);
 
-                _anim.SetTrigger(GroundedKey);
-                _source.PlayOneShot(_footsteps[Random.Range(0, _footsteps.Length)]);
-                _moveParticles.Play();
+                SafeResetTrigger(JumpKey);
+                SafeSetTrigger(GroundedKey);
+                if (_source != null && _footsteps != null && _footsteps.Length > 0) 
+                    _source.PlayOneShot(_footsteps[Random.Range(0, _footsteps.Length)]);
+                if (_moveParticles != null) _moveParticles.Play();
 
-                _landParticles.transform.localScale = Vector3.one * Mathf.InverseLerp(0, 40, impact);
-                _landParticles.Play();
+                if (_landParticles != null) _landParticles.transform.localScale = Vector3.one * Mathf.InverseLerp(0, 40, impact);
+                if (_landParticles != null) _landParticles.Play();
             }
             else
             {
-                _moveParticles.Stop();
+                if (_moveParticles != null) _moveParticles.Stop();
             }
         }
 
@@ -144,11 +154,12 @@ namespace TarodevController
             if (!hit || hit.collider.isTrigger || !hit.transform.TryGetComponent(out SpriteRenderer r)) return;
             var color = r.color;
             _currentGradient = new ParticleSystem.MinMaxGradient(color * 0.9f, color * 1.2f);
-            SetColor(_moveParticles);
+            if (_moveParticles != null) SetColor(_moveParticles);
         }
 
         private void SetColor(ParticleSystem ps)
         {
+            if (ps == null) return;
             var main = ps.main;
             main.startColor = _currentGradient;
         }
@@ -157,22 +168,32 @@ namespace TarodevController
         {
             if (_player.IsDodging)
             {
-                _anim.SetTrigger(DodgeTriggerKey);
-                _dodgeParticles.Play();
+                SafeSetTrigger(DodgeTriggerKey);
+                if (_dodgeParticles != null) _dodgeParticles.Play();
             }
             else
             {
-                _dodgeParticles.Stop();
+                if (_dodgeParticles != null) _dodgeParticles.Stop();
             }
         }
 
         private void OnCrouchingChanged()
         {
-            _anim.SetBool(CrouchingKey, _player.IsCrouching);
+            SafeSetBool(CrouchingKey, _player.IsCrouching);
         }
 
+        #region Safe Animator Helpers
+        private void SafeSetFloat(int hash, float value) { if (_validParameters.Contains(hash)) _anim.SetFloat(hash, value); }
+        private void SafeSetBool(int hash, bool value) { if (_validParameters.Contains(hash)) _anim.SetBool(hash, value); }
+        private void SafeSetTrigger(int hash) { if (_validParameters.Contains(hash)) _anim.SetTrigger(hash); }
+        private void SafeResetTrigger(int hash) { if (_validParameters.Contains(hash)) _anim.ResetTrigger(hash); }
+        #endregion
+
         private static readonly int GroundedKey = Animator.StringToHash("Grounded");
+        private static readonly int GroundedBoolKey = Animator.StringToHash("IsGrounded");
         private static readonly int IdleSpeedKey = Animator.StringToHash("IdleSpeed");
+        private static readonly int MoveSpeedKey = Animator.StringToHash("MoveSpeed");
+        private static readonly int VerticalVelocityKey = Animator.StringToHash("VerticalVelocity");
         private static readonly int JumpKey = Animator.StringToHash("Jump");
         private static readonly int DodgingKey = Animator.StringToHash("Dodging");
         private static readonly int CrouchingKey = Animator.StringToHash("Crouching");
