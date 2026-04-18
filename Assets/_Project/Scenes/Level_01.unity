@@ -247,7 +247,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 0
+  slotType: 5
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &171025217
@@ -506,6 +506,82 @@ MonoBehaviour:
   _landParticles: {fileID: 0}
   _dodgeParticles: {fileID: 0}
   _footsteps: []
+--- !u!1 &375918052
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 375918053}
+  - component: {fileID: 375918055}
+  - component: {fileID: 375918054}
+  m_Layer: 5
+  m_Name: Background
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &375918053
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 375918052}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1854865450}
+  m_Father: {fileID: 1474430060}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &375918054
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 375918052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &375918055
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 375918052}
+  m_CullTransparentMesh: 1
 --- !u!224 &409632789 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 9119484169958475866, guid: 27417e8abe8d5064b9dcbf7d64124244, type: 3}
@@ -564,7 +640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 0
+  slotType: 4
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &442830981
@@ -1705,7 +1781,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 0
+  slotType: 6
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &730329060
@@ -2320,7 +2396,7 @@ GameObject:
   - component: {fileID: 1146336391}
   - component: {fileID: 1146336390}
   m_Layer: 0
-  m_Name: Name
+  m_Name: Ring1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2365,9 +2441,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Weapon1
-
-'
+  m_text: Ring1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2461,7 +2535,7 @@ GameObject:
   - component: {fileID: 1238787167}
   - component: {fileID: 1238787166}
   m_Layer: 0
-  m_Name: Weapon2
+  m_Name: Ring2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2500,7 +2574,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 0
+  slotType: 3
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &1238787167
@@ -2800,9 +2874,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Weapon2
-
-'
+  m_text: Ring2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3010,7 +3082,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 0
+  slotType: 1
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &1451963228
@@ -3157,8 +3229,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1474430060}
   - component: {fileID: 1474430063}
-  - component: {fileID: 1474430062}
-  - component: {fileID: 1474430061}
+  - component: {fileID: 1474430064}
   m_Layer: 5
   m_Name: EquipmentMenu
   m_TagString: Untagged
@@ -3178,7 +3249,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1854865450}
+  - {fileID: 375918053}
   m_Father: {fileID: 1505976499}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
@@ -3186,7 +3257,15 @@ RectTransform:
   m_AnchoredPosition: {x: 199.76913, y: 0}
   m_SizeDelta: {x: 399.5383, y: 396}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1474430061
+--- !u!222 &1474430063
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1474430059}
+  m_CullTransparentMesh: 1
+--- !u!114 &1474430064
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3198,46 +3277,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d096aa8d0ae5714ca6e766acf4fb21a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentMenuUI
-  menuPanel: {fileID: 1474430059}
+  menuPanel: {fileID: 375918052}
   inputReader: {fileID: 526691066}
---- !u!114 &1474430062
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1474430059}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!222 &1474430063
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1474430059}
-  m_CullTransparentMesh: 1
 --- !u!1 &1505976495
 GameObject:
   m_ObjectHideFlags: 0
@@ -5275,7 +5316,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1854865449}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -5283,7 +5324,7 @@ RectTransform:
   - {fileID: 891622895}
   - {fileID: 491415716}
   - {fileID: 222370333}
-  m_Father: {fileID: 1474430060}
+  m_Father: {fileID: 375918053}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -5330,7 +5371,7 @@ GameObject:
   - component: {fileID: 2001691696}
   - component: {fileID: 2001691695}
   m_Layer: 0
-  m_Name: Weapon1
+  m_Name: Ring1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5369,7 +5410,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 0
+  slotType: 2
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &2001691696
