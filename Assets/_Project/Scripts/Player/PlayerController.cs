@@ -1,125 +1,225 @@
+using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace ProjectOni.Player
 {
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerController : MonoBehaviour
     {
-        [Header("Movement Settings")]
-        [SerializeField] private float moveSpeed = 5f;
-        [SerializeField] private float jumpForce = 12f;
-        [SerializeField] private float dodgeForce = 15f;
-        [SerializeField] private float dodgeDuration = 0.2f;
-
-        [Header("Ground Check")]
-        [SerializeField] private float groundCheckRadius = 0.2f;
-        [SerializeField] private float groundCheckOffset = -0.5f;
-        [SerializeField] private LayerMask groundLayer;
-
-        [Header("References")]
+        [SerializeField] private TarodevController.PlayerMovementData _stats;
+        [SerializeField] private CapsuleCollider2D _bodyCol;
+        [SerializeField] private BoxCollider2D _feetCol;
+        
         private Rigidbody2D _rb;
-        private PlayerStateMachine _stateMachine;
-        private Vector2 _moveInput;
-        private bool _isDodgeCooldown;
-        private bool _isGrounded;
+        private Vector2 _frameVelocity;
+
+        public TarodevController.PlayerMovementData Stats => _stats;
+        public Vector2 CurrentVelocity => _frameVelocity;
+
+        #region Collision Data
+        private bool _grounded;
+        private bool _onWall;
+        private int _lastWallDir;
+        private float _frameLeftGrounded = float.MinValue;
+        private bool _coyoteUsable;
+        private bool _bufferedJumpUsable;
+        private float _wallJumpUnlockTime;
+
+        public bool IsGrounded => _grounded;
+        public bool IsOnWall => _onWall;
+        public int WallDir => _lastWallDir;
+        public bool IsCrouching { get; private set; }
+        public bool IsWallSliding { get; private set; }
+        
+        public bool CanCoyote => _coyoteUsable && !_grounded && Time.time < _frameLeftGrounded + _stats.CoyoteTime;
+        public int AirJumpsRemaining { get; private set; }
+        #endregion
+
+        #region Events
+        public event Action<bool, float> GroundedChanged;
+        public event Action Jumped;
+        public event Action DodgingChanged;
+        public event Action CrouchingChanged;
+        #endregion
+
+        #region Dodge Data
+        public bool CanDodge { get; private set; } = true;
+        public bool IsDodging { get; private set; }
+        private float _dodgeCooldownTimer;
+        private Vector2 _dodgeDir;
+        private float _activeDodgePower;
+        #endregion
 
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
-            _stateMachine = GetComponent<PlayerStateMachine>();
-        }
-
-        // Input Actions Handlers
-        public void OnMove(InputValue value)
-        {
-            _moveInput = value.Get<Vector2>();
-        }
-
-        public void OnJump(InputValue value)
-        {
-            if (value.isPressed)
-            {
-                Jump();
-            }
-        }
-
-        public void OnDodge(InputValue value)
-        {
-            if (value.isPressed && !_isDodgeCooldown)
-            {
-                Dodge();
-            }
+            if (_bodyCol == null) _bodyCol = GetComponentInChildren<CapsuleCollider2D>();
+            if (_feetCol == null) _feetCol = GetComponentInChildren<BoxCollider2D>();
         }
 
         private void FixedUpdate()
         {
-            CheckGround();
+            CheckCollisions();
+            
+            // Note: Movement logic is now driven by the State Machine calling methods here
             ApplyMovement();
-            UpdateStates();
         }
 
-        private void CheckGround()
+        private void CheckCollisions()
         {
-            Vector2 checkPos = (Vector2)transform.position + Vector2.up * groundCheckOffset;
-            _isGrounded = Physics2D.OverlapCircle(checkPos, groundCheckRadius, groundLayer);
-        }
+            var groundMask = ~_stats.PlayerLayer;
+            bool groundHit = Physics2D.BoxCast(_feetCol.bounds.center, _feetCol.size, 0, Vector2.down, _stats.GrounderDistance, groundMask);
+            bool ceilingHit = Physics2D.CapsuleCast(_bodyCol.bounds.center, _bodyCol.size, _bodyCol.direction, 0, Vector2.up, _stats.GrounderDistance, groundMask);
 
-        private void ApplyMovement()
-        {
-            if (_isDodgeCooldown) return;
+            bool leftWall = Physics2D.CapsuleCast(_bodyCol.bounds.center, _bodyCol.size, _bodyCol.direction, 0, Vector2.left, _stats.GrounderDistance, _stats.WallLayer);
+            bool rightWall = Physics2D.CapsuleCast(_bodyCol.bounds.center, _bodyCol.size, _bodyCol.direction, 0, Vector2.right, _stats.GrounderDistance, _stats.WallLayer);
 
-            Vector2 velocity = _rb.linearVelocity;
-            velocity.x = _moveInput.x * moveSpeed;
-            _rb.linearVelocity = velocity;
+            _onWall = leftWall || rightWall;
+            _lastWallDir = leftWall ? -1 : 1;
 
-            // Flip character
-            if (_moveInput.x != 0)
+            if (ceilingHit) _frameVelocity.y = Mathf.Min(0, _frameVelocity.y);
+
+            if (!_grounded && groundHit)
             {
-                transform.localScale = new Vector3(_moveInput.x > 0 ? 1 : -1, 1, 1);
+                _grounded = true;
+                _coyoteUsable = true;
+                _bufferedJumpUsable = true;
+                CanDodge = true;
+                AirJumpsRemaining = _stats.MaxAirJumps;
+                GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
+            }
+            else if (_grounded && !groundHit)
+            {
+                _grounded = false;
+                _frameLeftGrounded = Time.time;
+                GroundedChanged?.Invoke(false, 0);
             }
         }
 
-        private void UpdateStates()
-        {
-            if (_stateMachine == null || _isDodgeCooldown) return;
+        #region Physics Services for States
 
-            if (!_isGrounded)
+        public void HandleHorizontalMovement(float inputX)
+        {
+            if (Time.time < _wallJumpUnlockTime) return;
+
+            float speed = IsCrouching ? _stats.MaxSpeed * _stats.CrouchSpeedModifier : _stats.MaxSpeed;
+            
+            if (inputX == 0)
             {
-                _stateMachine.ChangeState(PlayerState.Air);
-            }
-            else if (_moveInput.x != 0)
-            {
-                _stateMachine.ChangeState(PlayerState.Run);
+                float deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
+                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, deceleration * Time.fixedDeltaTime);
             }
             else
             {
-                _stateMachine.ChangeState(PlayerState.Idle);
+                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, inputX * speed, _stats.Acceleration * Time.fixedDeltaTime);
             }
         }
 
-        private void Jump()
+        public void HandleGravity()
         {
-            if (!_isGrounded) return;
+            if (_grounded && _frameVelocity.y <= 0f)
+            {
+                _frameVelocity.y = _stats.GroundingForce;
+            }
+            else if (IsWallSliding)
+            {
+                _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.WallSlideSpeed, _stats.FallAcceleration * Time.fixedDeltaTime);
+            }
+            else
+            {
+                // Simple falling gravity. Jump cut is handled by ApplyJumpCut()
+                _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, _stats.FallAcceleration * Time.fixedDeltaTime);
+            }
+        }
+
+        public void SetCrouching(bool crouching)
+        {
+            if (IsCrouching == crouching) return;
+            IsCrouching = crouching;
+            CrouchingChanged?.Invoke();
+        }
+
+        public void SetWallSliding(bool sliding)
+        {
+            IsWallSliding = sliding;
+        }
+
+        public void ExecuteJump()
+        {
+            Debug.Log($"[PlayerController] ExecuteJump called. Grounded: {_grounded}, AirJumps: {AirJumpsRemaining}");
             
-            _rb.linearVelocity = new Vector2(_rb.linearVelocity.x, 0); // Reset vertical velocity for consistent jump height
-            _rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+            _frameVelocity.y = _stats.JumpPower;
+            _grounded = false; 
+            _coyoteUsable = false;
+            _bufferedJumpUsable = false;
+            if (!_grounded && !CanCoyote) AirJumpsRemaining--;
+            Jumped?.Invoke();
         }
 
-        private void Dodge()
+        public void ExecuteWallJump(int wallDir)
         {
-            _isDodgeCooldown = true;
-            if (_stateMachine != null) _stateMachine.ChangeState(PlayerState.Dodge);
+            Debug.Log($"[PlayerController] ExecuteWallJump called. WallDir: {wallDir}");
 
-            Vector2 dodgeDir = _moveInput != Vector2.zero ? _moveInput.normalized : Vector2.right * transform.localScale.x;
-            _rb.AddForce(dodgeDir * dodgeForce, ForceMode2D.Impulse);
+            _frameVelocity.x = _stats.WallJumpXForce * -wallDir;
+            _frameVelocity.y = _stats.WallJumpYForce;
+            _wallJumpUnlockTime = Time.time + _stats.WallJumpLockTime;
             
-            Invoke(nameof(ResetDodge), dodgeDuration);
+            _grounded = false;
+            _coyoteUsable = false;
+            _bufferedJumpUsable = false;
+
+            // Note: Per user request, air jumps are NOT reset here.
+            Jumped?.Invoke();
         }
 
-        private void ResetDodge()
+        public void ApplyJumpCut()
         {
-            _isDodgeCooldown = false;
+            _frameVelocity.y *= _stats.JumpCutMultiplier;
         }
+
+        public void InitiateDodge(Vector2 inputDir)
+        {
+            IsDodging = true;
+            CanDodge = false;
+            _dodgeCooldownTimer = _stats.DodgeCooldown;
+            
+            // If no input, dodge in forward direction or last wall dir
+            _dodgeDir = inputDir != Vector2.zero ? inputDir.normalized : new Vector2(_lastWallDir, 0);
+            
+            _activeDodgePower = _grounded ? _stats.DodgePower : _stats.AirDodgePower;
+            _frameVelocity = _dodgeDir * _activeDodgePower;
+            
+            DodgingChanged?.Invoke();
+        }
+
+        public void HandleDodgeMovement()
+        {
+            // Maintain dodge velocity during the state
+            _frameVelocity = _dodgeDir * _activeDodgePower;
+        }
+
+        public void EndDodge()
+        {
+            IsDodging = false;
+            if (!_grounded)
+            {
+                _frameVelocity.x = Mathf.Clamp(_frameVelocity.x, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
+                _frameVelocity.y = Mathf.Clamp(_frameVelocity.y, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
+            }
+            DodgingChanged?.Invoke();
+        }
+
+        public void UpdateDodgeCooldown()
+        {
+            if (_dodgeCooldownTimer > 0)
+            {
+                _dodgeCooldownTimer -= Time.deltaTime;
+                if (_dodgeCooldownTimer <= 0) CanDodge = true;
+            }
+        }
+
+        #endregion
+
+        private void ApplyMovement() => _rb.linearVelocity = _frameVelocity;
     }
 }
