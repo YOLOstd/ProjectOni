@@ -15,6 +15,7 @@ namespace ProjectOni.Player
         private InputAction _jumpAction;
         private InputAction _dodgeAction;
         private InputAction _crouchAction;
+        private InputAction _toggleMenuAction;
 
         public Vector2 MoveDirection { get; private set; }
         public bool IsCrouchHeld { get; private set; }
@@ -24,6 +25,7 @@ namespace ProjectOni.Player
         public event Action JumpPressed;
         public event Action JumpReleased;
         public event Action DodgePressed;
+        public event Action MenuTogglePressed;
 
         private void Awake()
         {
@@ -33,6 +35,9 @@ namespace ProjectOni.Player
             _jumpAction = _playerInput.actions["Jump"];
             _dodgeAction = _playerInput.actions["Dodge"];
             _crouchAction = _playerInput.actions["Crouch"];
+            
+            // Safe lookup for experimental/new actions
+            _toggleMenuAction = _playerInput.actions.FindAction("ToggleMenu", false);
         }
 
         private void OnEnable()
@@ -40,6 +45,9 @@ namespace ProjectOni.Player
             _jumpAction.performed += OnJumpTriggered;
             _jumpAction.canceled += OnJumpCanceled;
             _dodgeAction.performed += OnDodgeTriggered;
+            
+            if (_toggleMenuAction != null)
+                _toggleMenuAction.performed += OnToggleMenuTriggered;
         }
 
         private void OnDisable()
@@ -47,6 +55,9 @@ namespace ProjectOni.Player
             _jumpAction.performed -= OnJumpTriggered;
             _jumpAction.canceled -= OnJumpCanceled;
             _dodgeAction.performed -= OnDodgeTriggered;
+            
+            if (_toggleMenuAction != null)
+                _toggleMenuAction.performed -= OnToggleMenuTriggered;
         }
 
         private void Update()
@@ -58,5 +69,6 @@ namespace ProjectOni.Player
         private void OnJumpTriggered(InputAction.CallbackContext obj) => JumpPressed?.Invoke();
         private void OnJumpCanceled(InputAction.CallbackContext obj) => JumpReleased?.Invoke();
         private void OnDodgeTriggered(InputAction.CallbackContext obj) => DodgePressed?.Invoke();
+        private void OnToggleMenuTriggered(InputAction.CallbackContext obj) => MenuTogglePressed?.Invoke();
     }
 }

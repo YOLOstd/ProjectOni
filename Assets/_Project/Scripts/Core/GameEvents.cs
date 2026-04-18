@@ -12,6 +12,8 @@ namespace ProjectOni.Core
         // Player events
         public static Action<float, float> OnPlayerHealthChanged; // Current, Max
         public static Action<ItemData> OnItemEquipped;
+        public static Action<ModularEquipmentData> OnWeaponSwapped;
+        public static Action<EquipmentSlot, ModularEquipmentData> OnEquipmentSlotChanged;
         
         // Enemy/Boss events
         public static Action OnBossDefeated;
@@ -19,6 +21,8 @@ namespace ProjectOni.Core
         // Helper methods for firing events safely
         public static void TriggerPlayerHealthChanged(float current, float max) => OnPlayerHealthChanged?.Invoke(current, max);
         public static void TriggerItemEquipped(ItemData item) => OnItemEquipped?.Invoke(item);
+        public static void TriggerWeaponSwapped(ModularEquipmentData activeWeapon) => OnWeaponSwapped?.Invoke(activeWeapon);
+        public static void TriggerEquipmentSlotChanged(EquipmentSlot slot, ModularEquipmentData item) => OnEquipmentSlotChanged?.Invoke(slot, item);
         public static void TriggerBossDefeated() => OnBossDefeated?.Invoke();
     }
 }
