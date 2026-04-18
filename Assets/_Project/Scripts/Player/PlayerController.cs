@@ -23,6 +23,7 @@ namespace ProjectOni.Player
         private float _frameLeftGrounded = float.MinValue;
         private bool _coyoteUsable;
         private bool _bufferedJumpUsable;
+        private float _wallJumpUnlockTime;
 
         public bool IsGrounded => _grounded;
         public bool IsOnWall => _onWall;
@@ -99,6 +100,8 @@ namespace ProjectOni.Player
 
         public void HandleHorizontalMovement(float inputX)
         {
+            if (Time.time < _wallJumpUnlockTime) return;
+
             float speed = IsCrouching ? _stats.MaxSpeed * _stats.CrouchSpeedModifier : _stats.MaxSpeed;
             
             if (inputX == 0)
@@ -150,6 +153,22 @@ namespace ProjectOni.Player
             _coyoteUsable = false;
             _bufferedJumpUsable = false;
             if (!_grounded && !CanCoyote) AirJumpsRemaining--;
+            Jumped?.Invoke();
+        }
+
+        public void ExecuteWallJump(int wallDir)
+        {
+            Debug.Log($"[PlayerController] ExecuteWallJump called. WallDir: {wallDir}");
+
+            _frameVelocity.x = _stats.WallJumpXForce * -wallDir;
+            _frameVelocity.y = _stats.WallJumpYForce;
+            _wallJumpUnlockTime = Time.time + _stats.WallJumpLockTime;
+            
+            _grounded = false;
+            _coyoteUsable = false;
+            _bufferedJumpUsable = false;
+
+            // Note: Per user request, air jumps are NOT reset here.
             Jumped?.Invoke();
         }
 

@@ -83,7 +83,12 @@ namespace ProjectOni.Player.Movement
 
         private void OnJumpPressed()
         {
-            if (CanJump())
+            if (Controller.IsOnWall && !Controller.IsGrounded)
+            {
+                Controller.ExecuteWallJump(Controller.WallDir);
+                ChangeState(AirborneState);
+            }
+            else if (CanJump())
             {
                 Controller.ExecuteJump();
                 ChangeState(AirborneState);
@@ -98,7 +103,7 @@ namespace ProjectOni.Player.Movement
             }
         }
 
-        private bool CanJump() => Controller.IsGrounded || Controller.CanCoyote || Controller.AirJumpsRemaining > 0;
+        private bool CanJump() => Controller.IsGrounded || Controller.CanCoyote || Controller.AirJumpsRemaining > 0 || Controller.IsOnWall;
         
         // Helper to check if Jump is still held for variable jump height
         // This is tricky with events, so we'll check the InputReader directly

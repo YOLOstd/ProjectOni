@@ -62,8 +62,14 @@ namespace TarodevController
         [Tooltip("Number of jumps allowed in the air")]
         public int MaxAirJumps = 1;
 
-        [Header("WALLS")] [Tooltip("The immediate velocity applied when wall jumping")]
-        public float WallJumpPower = 30;
+        [Header("WALLS")] [Tooltip("The immediate vertical velocity applied when wall jumping")]
+        public float WallJumpYForce = 30;
+
+        [Tooltip("The horizontal force applied when pushing off a wall")]
+        public float WallJumpXForce = 20;
+
+        [Tooltip("The time horizontal input is locked after a wall jump")]
+        public float WallJumpLockTime = 0.15f;
 
         [Tooltip("The speed at which the player slides down walls"), Range(0.1f, 20f)]
         public float WallSlideSpeed = 5;
