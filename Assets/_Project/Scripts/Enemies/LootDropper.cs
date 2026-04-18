@@ -8,6 +8,7 @@ namespace ProjectOni.Enemies
         [Header("Loot Pool")]
         [SerializeField] private ItemData[] lootPool;
         [SerializeField, Range(0, 1)] private float dropChance = 0.5f;
+        [SerializeField] private World.ItemPickup itemPickupPrefab;
 
         public void DropLoot()
         {
@@ -19,8 +20,12 @@ namespace ProjectOni.Enemies
 
             Debug.Log($"Dropped item: {droppedItem.itemName}");
 
-            // Spawning logic (normally spawn a physical ItemPickup prefab)
-            // Instantiate(itemPickupPrefab, transform.position, Quaternion.identity).Initialize(droppedItem);
+            // Spawning logic
+            if (itemPickupPrefab != null)
+            {
+                var pickup = Instantiate(itemPickupPrefab, transform.position, Quaternion.identity);
+                pickup.Initialize(droppedItem);
+            }
         }
     }
 }

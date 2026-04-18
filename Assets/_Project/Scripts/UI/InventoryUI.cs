@@ -28,7 +28,7 @@ namespace ProjectOni.UI
 
         private void UpdateInventoryUI(ItemData item)
         {
-            // Simple logic matching EquiptItem in PlayerInventory
+            // Simple logic matching EquipItem in PlayerInventory
             switch (item.type)
             {
                 case ItemType.Weapon:

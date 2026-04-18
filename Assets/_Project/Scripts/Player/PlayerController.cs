@@ -20,10 +20,12 @@ namespace ProjectOni.Player
         private bool _grounded;
         private bool _onWall;
         private int _lastWallDir;
+        private int _facingDir = 1;
         private float _frameLeftGrounded = float.MinValue;
         private bool _coyoteUsable;
         private bool _bufferedJumpUsable;
         private float _wallJumpUnlockTime;
+        private bool _hasAirDodged;
 
         public bool IsGrounded => _grounded;
         public bool IsOnWall => _onWall;
@@ -33,6 +35,7 @@ namespace ProjectOni.Player
         
         public bool CanCoyote => _coyoteUsable && !_grounded && Time.time < _frameLeftGrounded + _stats.CoyoteTime;
         public int AirJumpsRemaining { get; private set; }
+        public int FacingDir => _facingDir;
         #endregion
 
         #region Events
@@ -67,7 +70,7 @@ namespace ProjectOni.Player
 
         private void CheckCollisions()
         {
-            var groundMask = ~_stats.PlayerLayer;
+            var groundMask = _stats.GroundLayer;
             bool groundHit = Physics2D.BoxCast(_feetCol.bounds.center, _feetCol.size, 0, Vector2.down, _stats.GrounderDistance, groundMask);
             bool ceilingHit = Physics2D.CapsuleCast(_bodyCol.bounds.center, _bodyCol.size, _bodyCol.direction, 0, Vector2.up, _stats.GrounderDistance, groundMask);
 
@@ -85,6 +88,7 @@ namespace ProjectOni.Player
                 _coyoteUsable = true;
                 _bufferedJumpUsable = true;
                 CanDodge = true;
+                _hasAirDodged = false;
                 AirJumpsRemaining = _stats.MaxAirJumps;
                 GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
             }
@@ -101,6 +105,8 @@ namespace ProjectOni.Player
         public void HandleHorizontalMovement(float inputX)
         {
             if (Time.time < _wallJumpUnlockTime) return;
+
+            if (inputX != 0) _facingDir = (int)Mathf.Sign(inputX);
 
             float speed = IsCrouching ? _stats.MaxSpeed * _stats.CrouchSpeedModifier : _stats.MaxSpeed;
             
@@ -146,20 +152,19 @@ namespace ProjectOni.Player
 
         public void ExecuteJump()
         {
-            Debug.Log($"[PlayerController] ExecuteJump called. Grounded: {_grounded}, AirJumps: {AirJumpsRemaining}");
-            
             _frameVelocity.y = _stats.JumpPower;
+
+            if (!_grounded && !CanCoyote) AirJumpsRemaining--;
+
             _grounded = false; 
             _coyoteUsable = false;
             _bufferedJumpUsable = false;
-            if (!_grounded && !CanCoyote) AirJumpsRemaining--;
             Jumped?.Invoke();
         }
 
         public void ExecuteWallJump(int wallDir)
         {
-            Debug.Log($"[PlayerController] ExecuteWallJump called. WallDir: {wallDir}");
-
+            _facingDir = -wallDir;
             _frameVelocity.x = _stats.WallJumpXForce * -wallDir;
             _frameVelocity.y = _stats.WallJumpYForce;
             _wallJumpUnlockTime = Time.time + _stats.WallJumpLockTime;
@@ -183,8 +188,10 @@ namespace ProjectOni.Player
             CanDodge = false;
             _dodgeCooldownTimer = _stats.DodgeCooldown;
             
-            // If no input, dodge in forward direction or last wall dir
-            _dodgeDir = inputDir != Vector2.zero ? inputDir.normalized : new Vector2(_lastWallDir, 0);
+            if (!_grounded) _hasAirDodged = true;
+
+            // If no input, dodge in forward direction
+            _dodgeDir = inputDir != Vector2.zero ? inputDir.normalized : new Vector2(_facingDir, 0);
             
             _activeDodgePower = _grounded ? _stats.DodgePower : _stats.AirDodgePower;
             _frameVelocity = _dodgeDir * _activeDodgePower;
@@ -203,6 +210,7 @@ namespace ProjectOni.Player
             IsDodging = false;
             if (!_grounded)
             {
+                _hasAirDodged = true;
                 _frameVelocity.x = Mathf.Clamp(_frameVelocity.x, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
                 _frameVelocity.y = Mathf.Clamp(_frameVelocity.y, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
             }
@@ -214,7 +222,10 @@ namespace ProjectOni.Player
             if (_dodgeCooldownTimer > 0)
             {
                 _dodgeCooldownTimer -= Time.deltaTime;
-                if (_dodgeCooldownTimer <= 0) CanDodge = true;
+                if (_dodgeCooldownTimer <= 0)
+                {
+                    if (_grounded || !_hasAirDodged) CanDodge = true;
+                }
             }
         }
 

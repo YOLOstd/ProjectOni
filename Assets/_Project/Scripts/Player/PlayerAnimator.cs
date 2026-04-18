@@ -86,8 +86,8 @@ namespace ProjectOni.Player
 
         private void HandleSpriteFlip()
         {
-            if (_player.GetComponent<InputReader>().MoveDirection.x != 0) 
-                _sprite.flipX = _player.GetComponent<InputReader>().MoveDirection.x < 0;
+            if (_player.FacingDir != 0) 
+                _sprite.flipX = _player.FacingDir < 0;
         }
 
         private void HandleMovementStats()

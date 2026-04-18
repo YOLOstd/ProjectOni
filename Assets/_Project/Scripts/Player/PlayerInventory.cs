@@ -23,12 +23,12 @@ namespace ProjectOni.Player
         private void Start()
         {
             // Initial equipment sync if items are pre-assigned in Editor
-            if (currentWeapon != null) EquiptItem(currentWeapon);
-            if (equippedChest != null) EquiptItem(equippedChest);
-            foreach (var ring in equippedRings) if (ring != null) EquiptItem(ring);
+            if (currentWeapon != null) EquipItem(currentWeapon);
+            if (equippedChest != null) EquipItem(equippedChest);
+            foreach (var ring in equippedRings) if (ring != null) EquipItem(ring);
         }
 
-        public void EquiptItem(ItemData item)
+        public void EquipItem(ItemData item)
         {
             // Add item to appropriate slot logic
             switch (item.type)

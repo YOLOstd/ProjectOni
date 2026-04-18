@@ -18,6 +18,9 @@ MonoBehaviour:
   WallLayer:
     serializedVersion: 2
     m_Bits: 64
+  GroundLayer:
+    serializedVersion: 2
+    m_Bits: 64
   SnapInput: 1
   VerticalDeadZoneThreshold: 0.3
   HorizontalDeadZoneThreshold: 0.1
@@ -32,7 +35,7 @@ MonoBehaviour:
   MaxFallSpeed: 17
   FallAcceleration: 80
   JumpCutMultiplier: 0.5
-  CoyoteTime: 0.2
+  CoyoteTime: 0.4
   JumpBuffer: 0.2
   MaxAirJumps: 1
   WallJumpYForce: 20
