@@ -11,9 +11,9 @@ namespace ProjectOni.Player
         [SerializeField] private ModularEquipmentData secondaryWeapon;
 
         [Header("Armor Slots")]
-        [SerializeField] private ModularEquipmentData headSlot;
+        [SerializeField] private ModularEquipmentData helmetSlot;
         [SerializeField] private ModularEquipmentData chestSlot;
-        [SerializeField] private ModularEquipmentData pantsSlot;
+        [SerializeField] private ModularEquipmentData bootsSlot;
 
         [Header("Accessory Slots")]
         [SerializeField] private ModularEquipmentData ring1Slot;
@@ -33,9 +33,9 @@ namespace ProjectOni.Player
         {
             GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.WeaponPrimary, primaryWeapon);
             GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.WeaponSecondary, secondaryWeapon);
-            GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.Head, headSlot);
+            GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.Helmet, helmetSlot);
             GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.Chest, chestSlot);
-            GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.Pants, pantsSlot);
+            GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.Boots, bootsSlot);
             GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.Ring1, ring1Slot);
             GameEvents.TriggerEquipmentSlotChanged(EquipmentSlot.Ring2, ring2Slot);
         }
@@ -49,9 +49,9 @@ namespace ProjectOni.Player
             {
                 case EquipmentSlot.WeaponPrimary: primaryWeapon = item; break;
                 case EquipmentSlot.WeaponSecondary: secondaryWeapon = item; break;
-                case EquipmentSlot.Head: headSlot = item; break;
+                case EquipmentSlot.Helmet: helmetSlot = item; break;
                 case EquipmentSlot.Chest: chestSlot = item; break;
-                case EquipmentSlot.Pants: pantsSlot = item; break;
+                case EquipmentSlot.Boots: bootsSlot = item; break;
                 case EquipmentSlot.Ring1: ring1Slot = item; break;
                 case EquipmentSlot.Ring2: ring2Slot = item; break;
             }

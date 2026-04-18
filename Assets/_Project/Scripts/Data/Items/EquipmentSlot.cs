@@ -6,8 +6,8 @@ namespace ProjectOni.Data
         WeaponSecondary, 
         Ring1, 
         Ring2, 
-        Head, 
+        Helmet, 
         Chest, 
-        Pants 
+        Boots 
     }
 }
