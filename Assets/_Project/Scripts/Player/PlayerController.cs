@@ -117,7 +117,10 @@ namespace ProjectOni.Player
             }
             else
             {
-                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, inputX * speed, _stats.Acceleration * Time.fixedDeltaTime);
+                // Digital behavior: snap to full speed if there is any input
+                // This ensures keyboard and controller feel the same and prevents diagonal slowdown
+                float targetX = Mathf.Sign(inputX);
+                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, targetX * speed, _stats.Acceleration * Time.fixedDeltaTime);
             }
         }
 
@@ -172,8 +175,8 @@ namespace ProjectOni.Player
             _grounded = false;
             _coyoteUsable = false;
             _bufferedJumpUsable = false;
+            AirJumpsRemaining = _stats.MaxAirJumps;
 
-            // Note: Per user request, air jumps are NOT reset here.
             Jumped?.Invoke();
         }
 
