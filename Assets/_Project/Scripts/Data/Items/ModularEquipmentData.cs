@@ -6,7 +6,7 @@ namespace ProjectOni.Data
     [CreateAssetMenu(fileName = "New Modular Item", menuName = "Project Oni/Items/Modular Item")]
     public class ModularEquipmentData : ItemData
     {
-        public EquipmentSlot allowedSlot; // The UI checks this before allowing an equip
+        public ItemCategoryTag category; // What this item is (Weapon, Ring, etc.)
 
         [SerializeReference] 
         public List<IEquipmentTrait> traits = new List<IEquipmentTrait>();

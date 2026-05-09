@@ -5,9 +5,10 @@ namespace ProjectOni.Data
     public enum ItemType
     {
         Weapon,
-        Ring,
-        Chest,
-        Pendant
+        Equipment,
+        Material,
+        Consumable,
+        Special
     }
 
     /// <summary>

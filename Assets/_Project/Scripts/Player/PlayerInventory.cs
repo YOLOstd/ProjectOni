@@ -1,56 +1,59 @@
+using System.Collections.Generic;
 using UnityEngine;
 using ProjectOni.Data;
 using ProjectOni.Core;
 
 namespace ProjectOni.Player
 {
+    /// <summary>
+    /// Acts as the player's "Bag" or repository for unequipped items.
+    /// Equipment state is handled by the EquipmentManager.
+    /// </summary>
     public class PlayerInventory : MonoBehaviour
     {
-        [Header("Weapon")]
-        public WeaponData currentWeapon;
+        [Header("Bag Storage")]
+        [SerializeField] private List<ItemData> items = new List<ItemData>();
+        [SerializeField] private int maxSlots = 20;
 
-        [Header("Equipment Slots")]
-        public EquipmentData equippedChest;
-        public EquipmentData[] equippedRings = new EquipmentData[2];
+        public List<ItemData> BagItems => items;
 
-        private PlayerStats _stats;
-
-        private void Awake()
+        /// <summary>
+        /// Adds an item to the bag.
+        /// </summary>
+        /// <returns>True if the item was added, false if inventory is full.</returns>
+        public bool AddToBag(ItemData item)
         {
-            _stats = GetComponent<PlayerStats>();
-        }
-
-        private void Start()
-        {
-            // Initial equipment sync if items are pre-assigned in Editor
-            if (currentWeapon != null) EquipItem(currentWeapon);
-            if (equippedChest != null) EquipItem(equippedChest);
-            foreach (var ring in equippedRings) if (ring != null) EquipItem(ring);
-        }
-
-        public void EquipItem(ItemData item)
-        {
-            // Add item to appropriate slot logic
-            switch (item.type)
+            if (items.Count >= maxSlots)
             {
-                case ItemType.Weapon:
-                    currentWeapon = item as WeaponData;
-                    break;
-                case ItemType.Chest:
-                    equippedChest = item as EquipmentData;
-                    break;
-                case ItemType.Ring:
-                    // Simple logic to fill first empty or override first slot
-                    if (equippedRings[0] == null) equippedRings[0] = item as EquipmentData;
-                    else equippedRings[1] = item as EquipmentData;
-                    break;
+                Debug.LogWarning("[PlayerInventory] Bag is full!");
+                return false;
             }
 
-            // Fire event for UI and other systems
-            GameEvents.TriggerItemEquipped(item);
+            items.Add(item);
+            Debug.Log($"[PlayerInventory] Added {item.itemName} to bag.");
             
-            // Re-sync stats (if using StatCalculator, though PlayerStats currently handles its own state)
-            // _stats.ReCalculateStats(); 
+            // Note: We might want a BagChanged event in the future for UI updates
+            return true;
+        }
+
+        /// <summary>
+        /// Removes an item from the bag.
+        /// </summary>
+        public void RemoveFromBag(ItemData item)
+        {
+            if (items.Contains(item))
+            {
+                items.Remove(item);
+                Debug.Log($"[PlayerInventory] Removed {item.itemName} from bag.");
+            }
+        }
+
+        /// <summary>
+        /// Placeholder for finding items by type or criteria.
+        /// </summary>
+        public List<ItemData> GetItemsOfType(ItemType type)
+        {
+            return items.FindAll(i => i.type == type);
         }
     }
 }

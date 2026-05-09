@@ -230,9 +230,9 @@ RectTransform:
   - {fileID: 781422968}
   m_Father: {fileID: 491415716}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -140}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &171025216
@@ -247,7 +247,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 5
+  slotDefinition: {fileID: 0}
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &171025217
@@ -339,9 +339,9 @@ RectTransform:
   - {fileID: 1238787165}
   m_Father: {fileID: 1854865450}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250, y: -50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &222370334
@@ -523,7 +523,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &375918053
 RectTransform:
   m_ObjectHideFlags: 0
@@ -623,9 +623,9 @@ RectTransform:
   - {fileID: 509455743}
   m_Father: {fileID: 491415716}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -40}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &442830980
@@ -640,7 +640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 4
+  slotDefinition: {fileID: 0}
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &442830981
@@ -808,9 +808,9 @@ RectTransform:
   - {fileID: 730329058}
   m_Father: {fileID: 1854865450}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 150, y: -50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &491415717
@@ -1178,7 +1178,7 @@ GameObject:
   - component: {fileID: 526691066}
   m_Layer: 3
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1269,8 +1269,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 316982037}
   - {fileID: 1545767177}
+  - {fileID: 2088774450}
+  - {fileID: 316982037}
   - {fileID: 1824634550}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1779,9 +1780,9 @@ RectTransform:
   - {fileID: 1416587429}
   m_Father: {fileID: 491415716}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -240}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &730329059
@@ -1796,7 +1797,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 6
+  slotDefinition: {fileID: 0}
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &730329060
@@ -2130,9 +2131,9 @@ RectTransform:
   - {fileID: 1451963226}
   m_Father: {fileID: 1854865450}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 50, y: -50}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &891622896
@@ -2276,9 +2277,9 @@ RectTransform:
   - {fileID: 1605462884}
   m_Father: {fileID: 891622895}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -40}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &977004557
@@ -2293,7 +2294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 0
+  slotDefinition: {fileID: 11400000, guid: 7c8687bee41cd7b44ad6c748db6eaaf0, type: 2}
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &977004558
@@ -2600,9 +2601,9 @@ RectTransform:
   - {fileID: 1423007296}
   m_Father: {fileID: 222370333}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -140}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1238787166
@@ -2617,7 +2618,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 3
+  slotDefinition: {fileID: 0}
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &1238787167
@@ -2688,7 +2689,7 @@ GameObject:
   - component: {fileID: 1249334405}
   - component: {fileID: 1249334404}
   m_Layer: 7
-  m_Name: Pickup_Katana
+  m_Name: Pickup_Sword
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2742,7 +2743,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d96de0203a83fe4183e0827cdf40e08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.World.ItemPickup
-  _item: {fileID: 11400000, guid: d9f4d06a3736afe42a5b9c45e67d6154, type: 2}
+  _item: {fileID: 11400000, guid: 78e186d09acd4254a9f905db35be26c7, type: 2}
   _iconRenderer: {fileID: 1546451206}
 --- !u!4 &1249334406
 Transform:
@@ -3206,9 +3207,9 @@ RectTransform:
   - {fileID: 601611005}
   m_Father: {fileID: 891622895}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -140}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1451963227
@@ -3223,7 +3224,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 1
+  slotDefinition: {fileID: 0}
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &1451963228
@@ -3393,10 +3394,10 @@ RectTransform:
   - {fileID: 375918053}
   m_Father: {fileID: 1505976499}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 199.76913, y: 0}
-  m_SizeDelta: {x: 399.5383, y: 396}
+  m_SizeDelta: {x: 399.5383, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1474430063
 CanvasRenderer:
@@ -5651,6 +5652,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1824634550}
   - component: {fileID: 1824634551}
+  - component: {fileID: 1824634552}
+  - component: {fileID: 1824634553}
   m_Layer: 3
   m_Name: Interaction
   m_TagString: Untagged
@@ -5689,6 +5692,43 @@ MonoBehaviour:
   _interactableLayer:
     serializedVersion: 2
     m_Bits: 128
+--- !u!114 &1824634552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824634549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 69429e22a8e34c445aeea126619e76a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Player.PlayerInventory
+  items: []
+  maxSlots: 20
+--- !u!114 &1824634553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824634549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ccbbc79041c79542bde47f1962ac58d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Player.EquipmentManager
+  allGameSlots:
+  - {fileID: 11400000, guid: 7c8687bee41cd7b44ad6c748db6eaaf0, type: 2}
+  - {fileID: 11400000, guid: 73919518b4e62ce4888967f7912c1605, type: 2}
+  - {fileID: 11400000, guid: f6f635c24fb36de4785e8b3f586401e7, type: 2}
+  - {fileID: 11400000, guid: 952aea848b20b39469e9291cd18caac4, type: 2}
+  - {fileID: 11400000, guid: 7309d36488458e64e931b899e667b25c, type: 2}
+  - {fileID: 11400000, guid: 78409ab3f8996f2418ed551f63a06bd7, type: 2}
+  - {fileID: 11400000, guid: 17a862ee22a09ed44a2072180c869979, type: 2}
+  primaryWeaponSlot: {fileID: 11400000, guid: 7c8687bee41cd7b44ad6c748db6eaaf0, type: 2}
+  secondaryWeaponSlot: {fileID: 11400000, guid: 73919518b4e62ce4888967f7912c1605, type: 2}
+  isUsingPrimary: 1
 --- !u!1 &1854865449
 GameObject:
   m_ObjectHideFlags: 0
@@ -5804,9 +5844,9 @@ RectTransform:
   - {fileID: 1146336389}
   m_Father: {fileID: 222370333}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 40, y: -40}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 80, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2001691695
@@ -5821,7 +5861,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e658c9212e6483843aec7a2456715bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.EquipmentSlotUI
-  slotType: 2
+  slotDefinition: {fileID: 0}
   iconImage: {fileID: 0}
   emptySprite: {fileID: 0}
 --- !u!114 &2001691696
@@ -5906,7 +5946,7 @@ GameObject:
   - component: {fileID: 2088774449}
   - component: {fileID: 2088774451}
   m_Layer: 0
-  m_Name: Cinemachine
+  m_Name: Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5963,12 +6003,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2088774447}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.0000009536743, y: 0.37700006, z: -10}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.37700006, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 526691062}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2088774451
 MonoBehaviour:
@@ -5985,10 +6025,10 @@ MonoBehaviour:
   CameraDistance: 10
   DeadZoneDepth: 1.15
   Composition:
-    ScreenPosition: {x: -0.000000014901161, y: 0.07000001}
+    ScreenPosition: {x: 0.000000074505806, y: 0.07000001}
     DeadZone:
       Enabled: 1
-      Size: {x: 0.2945471, y: 0.35}
+      Size: {x: 0.19152424, y: 0.35}
     HardLimits:
       Enabled: 0
       Size: {x: 0.88, y: 0.8}
@@ -6020,7 +6060,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 519420032}
-  - {fileID: 2088774450}
   - {fileID: 619394802}
   - {fileID: 1304836321}
   - {fileID: 526691062}

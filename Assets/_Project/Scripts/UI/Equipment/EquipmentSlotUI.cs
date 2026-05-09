@@ -10,15 +10,21 @@ namespace ProjectOni.UI
     /// </summary>
     public class EquipmentSlotUI : MonoBehaviour
     {
-        [SerializeField] private EquipmentSlot slotType;
+        [SerializeField] private EquipmentSlotDefinition slotDefinition;
         [SerializeField] private Image iconImage;
         [SerializeField] private Sprite emptySprite;
 
-        public EquipmentSlot SlotType => slotType;
+        public EquipmentSlotDefinition SlotDefinition => slotDefinition;
 
         private void Awake()
         {
             if (iconImage == null) iconImage = GetComponentInChildren<Image>();
+            
+            // Default icon from the definition if emptySprite is not set
+            if (emptySprite == null && slotDefinition != null)
+            {
+                emptySprite = slotDefinition.defaultIcon;
+            }
         }
 
         public void SetItem(ModularEquipmentData item)

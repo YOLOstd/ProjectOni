@@ -35,14 +35,14 @@ MonoBehaviour:
   MaxFallSpeed: 17
   FallAcceleration: 80
   JumpCutMultiplier: 0.5
-  CoyoteTime: 0.4
+  CoyoteTime: 0.1
   JumpBuffer: 0.2
   MaxAirJumps: 1
   WallJumpYForce: 20
   WallJumpXForce: 8
   WallJumpLockTime: 0.1
   WallSlideSpeed: 5
-  DodgePower: 28
+  DodgePower: 22
   AirDodgePower: 18
   DodgeDuration: 0.12
   DodgeCooldown: 0.5

@@ -77,11 +77,11 @@ namespace ProjectOni.UI
             }
         }
 
-        private void HandleSlotChanged(EquipmentSlot slot, ModularEquipmentData item)
+        private void HandleSlotChanged(EquipmentSlotDefinition slot, ModularEquipmentData item)
         {
             foreach (var slotUI in _slots)
             {
-                if (slotUI.SlotType == slot)
+                if (slotUI.SlotDefinition == slot)
                 {
                     slotUI.SetItem(item);
                 }

@@ -31,23 +31,38 @@ namespace ProjectOni.World
 
         public void Interact()
         {
-             Debug.Log($"[ItemPickup] Interact method called on {gameObject.name}");
             if (_item == null) return;
 
-            // Find player and add to inventory
-            // We search for PlayerInventory on the object that interacts or just find the singleton player if one exists
-            // For now, we'll find the player by tag
             var player = GameObject.FindGameObjectWithTag("Player");
-            Debug.Log($"[ItemPickup] Found player: {player != null}");
-            if (player != null && player.TryGetComponent(out PlayerInventory inventory))
+            if (player == null) return;
+
+            bool handled = false;
+
+            // 1. Try Auto-Equip if it's modular equipment
+            var eqManager = player.GetComponentInChildren<EquipmentManager>();
+            if (_item is ModularEquipmentData equipment && eqManager != null && equipment.category != null)
             {
-                Debug.Log($"[ItemPickup] Found inventory on player: {inventory != null}");
-                inventory.EquipItem(_item);
-                Debug.Log($"[ItemPickup] Picked up: {_item.itemName}");
-                
-                // Fire generic item pickup event if needed
-                // GameEvents.TriggerItemPickedUp(_item);
-                
+                // Auto-equip ONLY if there is a compatible empty slot
+                if (eqManager.EquipToFirstCompatibleSlot(equipment))
+                {
+                    handled = true;
+                    Debug.Log($"[ItemPickup] Auto-equipped: {_item.itemName}");
+                }
+            }
+
+            // 2. If not handled, add to bag
+            var inventory = player.GetComponentInChildren<PlayerInventory>();
+            if (!handled && inventory != null)
+            {
+                if (inventory.AddToBag(_item))
+                {
+                    handled = true;
+                    Debug.Log($"[ItemPickup] Added to bag: {_item.itemName}");
+                }
+            }
+
+            if (handled)
+            {
                 Destroy(gameObject);
             }
         }
