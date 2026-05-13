@@ -8,34 +8,33 @@ namespace ProjectOni.Combat
     /// </summary>
     public static class StatCalculator
     {
-        public static float CalculateFinalDamage(float baseDamage, WeaponData weapon, EquipmentData[] accessories)
+        public static float CalculateFinalDamage(float baseDamage, System.Collections.Generic.IEnumerable<ModularEquipmentData> equipmentList)
         {
-            float weaponDamage = weapon != null ? weapon.baseDamage : 0;
-            float equipmentBonus = 0;
-
-            if (accessories != null)
+            float flatBonus = 0;
+            if (equipmentList != null)
             {
-                foreach (var equipment in accessories)
+                foreach (var item in equipmentList)
                 {
-                    if (equipment != null) equipmentBonus += equipment.damageBonus;
+                    if (item == null) continue;
+                    var trait = item.GetTrait<StatModifierTrait>();
+                    if (trait != null) flatBonus += trait.attackDamageBonus;
                 }
             }
-
-            return baseDamage + weaponDamage + equipmentBonus;
+            return baseDamage + flatBonus;
         }
 
-        public static float CalculateMaxHealth(float baseMaxHealth, EquipmentData chest, EquipmentData[] rings)
+        public static float CalculateMaxHealth(float baseMaxHealth, System.Collections.Generic.IEnumerable<ModularEquipmentData> equipmentList)
         {
             float bonus = 0;
-            if (chest != null) bonus += chest.healthBonus;
-            if (rings != null)
+            if (equipmentList != null)
             {
-                foreach (var ring in rings)
+                foreach (var item in equipmentList)
                 {
-                    if (ring != null) bonus += ring.healthBonus;
+                    if (item == null) continue;
+                    var trait = item.GetTrait<StatModifierTrait>();
+                    if (trait != null) bonus += trait.healthBonus;
                 }
             }
-
             return baseMaxHealth + bonus;
         }
     }

@@ -9,13 +9,13 @@ namespace ProjectOni.Player
     {
         [Header("Attacking Settings")]
         private Animator _animator;
-        private PlayerInventory _inventory;
+        private EquipmentManager _equipment;
         private PlayerStats _stats;
 
         private void Awake()
         {
             _animator = GetComponent<Animator>();
-            _inventory = GetComponent<PlayerInventory>();
+            _equipment = GetComponent<EquipmentManager>();
             _stats = GetComponent<PlayerStats>();
         }
 
@@ -30,16 +30,24 @@ namespace ProjectOni.Player
 
         private void PerformAttack()
         {
-            if (_inventory.currentWeapon == null) return;
+            ModularEquipmentData activeWeapon = _equipment.GetActiveWeapon();
+            if (activeWeapon == null) return;
+    
+            // Get the weapon trait to find the animation trigger
+            var weaponTrait = activeWeapon.GetTrait<WeaponTrait>();
+            string animName = (weaponTrait != null && !string.IsNullOrEmpty(weaponTrait.comboAnimationTrigger)) 
+                ? weaponTrait.comboAnimationTrigger 
+                : "Attack";
 
             // Trigger animation
             if (_animator != null)
             {
-                _animator.Play(_inventory.currentWeapon.attackAnimation != null ? _inventory.currentWeapon.attackAnimation.name : "Attack");
+                _animator.Play(animName);
             }
-
+    
             // Damage logic (simplified - normally triggered via Animation Event or Hitbox control)
-            Debug.Log($"Attacking with {_inventory.currentWeapon.itemName} dealing {StatCalculator.CalculateFinalDamage(_stats.BaseDamage, _inventory.currentWeapon, null)} damage.");
+            float damage = StatCalculator.CalculateFinalDamage(_stats.BaseDamage, new[] { activeWeapon });
+            Debug.Log($"Attacking with {activeWeapon.itemName} dealing {damage} damage.");
         }
     }
 }

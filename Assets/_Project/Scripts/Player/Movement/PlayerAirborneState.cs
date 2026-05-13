@@ -7,21 +7,30 @@ namespace ProjectOni.Player.Movement
     {
         private bool _jumpCutApplied;
 
-        public PlayerAirborneState(PlayerMovementStateMachine stateMachine) : base(stateMachine) { }
-
         public override void Enter()
         {
             _jumpCutApplied = false;
         }
 
-        public override void Update()
+        public override void StateUpdate()
         {
+            if (!isOwner) return;
+
             if (Controller.IsGrounded && Controller.CurrentVelocity.y <= 0)
             {
-                if (Input.MoveDirection.x != 0)
-                    StateMachine.ChangeState(StateMachine.MoveState);
+                if (StateMachine.HasBufferedJump)
+                {
+                    StateMachine.ClearJumpBuffer();
+                    Controller.ExecuteJump();
+                    // Stay in AirborneState since we jumped again
+                }
                 else
-                    StateMachine.ChangeState(StateMachine.IdleState);
+                {
+                    if (ProjectOni.Managers.InputManager.Instance.MoveDirection.x != 0)
+                        machine.SetState(StateMachine.MoveState);
+                    else
+                        machine.SetState(StateMachine.IdleState);
+                }
                 return;
             }
 
@@ -33,17 +42,17 @@ namespace ProjectOni.Player.Movement
             }
 
             // Wall Slide Detection
+            var inputDir = ProjectOni.Managers.InputManager.Instance.MoveDirection;
             bool isWallSliding = Controller.IsOnWall && !Controller.IsGrounded && Controller.CurrentVelocity.y < 0 &&
-                                (Input.MoveDirection.x != 0 && Mathf.Sign(Input.MoveDirection.x) == Controller.WallDir);
+                                (inputDir.x != 0 && Mathf.Sign(inputDir.x) == Controller.WallDir);
             Controller.SetWallSliding(isWallSliding);
         }
 
-        public override void FixedUpdate()
+        public override void StateFixedUpdate()
         {
-            Controller.HandleHorizontalMovement(Input.MoveDirection.x);
+            if (!isOwner) return;
+            Controller.HandleHorizontalMovement(ProjectOni.Managers.InputManager.Instance.MoveDirection.x);
             Controller.HandleGravity();
         }
-
-        public override void Exit() { }
     }
 }

@@ -1,84 +1,114 @@
 using UnityEngine;
 using System;
-using ProjectOni.Player;
+using PurrNet;
+using PurrNet.StateMachine;
 
 namespace ProjectOni.Player.Movement
 {
-    public enum PlayerMovementStateEnum { Idle, Move, Airborne, Dodge, Attack }
-
-    public class PlayerMovementStateMachine : MonoBehaviour
+    public class PlayerMovementStateMachine : NetworkBehaviour
     {
         [Header("References")]
         public PlayerController Controller;
-        public InputReader InputReader;
         public Animator Animator;
+        public PurrNet.StateMachine.StateMachine machine;
 
         [Header("Current State Debug")]
         [SerializeField] private string currentStateName;
 
-        public PlayerBaseState CurrentState { get; private set; }
-
-        // State Instances
+        // State Instances (Components)
         public PlayerIdleState IdleState { get; private set; }
         public PlayerMoveState MoveState { get; private set; }
         public PlayerAirborneState AirborneState { get; private set; }
         public PlayerDodgeState DodgeState { get; private set; }
 
-        public event Action<PlayerBaseState> StateChanged;
+        public event Action<StateNode> StateChanged;
+        
+        private float _lastJumpPressedTime = float.MinValue;
+        public bool HasBufferedJump => Time.time < _lastJumpPressedTime + Controller.Stats.JumpBuffer;
+        public void ClearJumpBuffer() => _lastJumpPressedTime = float.MinValue;
 
-        public bool IsJumpHeld => InputReader != null && InputReader.IsJumpHeld;
+        public bool IsJumpHeld => ProjectOni.Managers.InputManager.Instance != null && ProjectOni.Managers.InputManager.Instance.IsJumpHeld;
 
         private void Awake()
         {
             if (Controller == null) Controller = GetComponent<PlayerController>();
-            if (InputReader == null) InputReader = GetComponent<InputReader>();
             if (Animator == null) Animator = GetComponentInChildren<Animator>();
+            if (machine == null) machine = GetComponent<PurrNet.StateMachine.StateMachine>();
 
-            // Initialize States
-            IdleState = new PlayerIdleState(this);
-            MoveState = new PlayerMoveState(this);
-            AirborneState = new PlayerAirborneState(this);
-            DodgeState = new PlayerDodgeState(this);
+            // Find States
+            IdleState = GetComponent<PlayerIdleState>();
+            MoveState = GetComponent<PlayerMoveState>();
+            AirborneState = GetComponent<PlayerAirborneState>();
+            DodgeState = GetComponent<PlayerDodgeState>();
         }
 
-        private void Start()
+        protected override void OnSpawned()
         {
-            ChangeState(IdleState);
+            base.OnSpawned();
+            if (isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null)
+                {
+                    input.JumpPressed += OnJumpPressed;
+                    input.DodgePressed += OnDodgePressed;
+                }
+                machine.onStateChanged += OnInternalStateChanged;
+            }
+        }
+
+        protected override void OnDespawned(bool asServer)
+        {
+            base.OnDespawned(asServer);
+            if (isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null)
+                {
+                    input.JumpPressed -= OnJumpPressed;
+                    input.DodgePressed -= OnDodgePressed;
+                }
+                machine.onStateChanged -= OnInternalStateChanged;
+            }
         }
 
         private void OnEnable()
         {
-            InputReader.JumpPressed += OnJumpPressed;
-            InputReader.DodgePressed += OnDodgePressed;
+            if (isSpawned && isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null)
+                {
+                    input.JumpPressed += OnJumpPressed;
+                    input.DodgePressed += OnDodgePressed;
+                }
+            }
         }
 
         private void OnDisable()
         {
-            InputReader.JumpPressed -= OnJumpPressed;
-            InputReader.DodgePressed -= OnDodgePressed;
+            if (isSpawned && isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null)
+                {
+                    input.JumpPressed -= OnJumpPressed;
+                    input.DodgePressed -= OnDodgePressed;
+                }
+            }
         }
 
         private void Update()
         {
+            if (!isOwner) return;
             Controller.UpdateDodgeCooldown();
-            CurrentState?.Update();
         }
 
-        private void FixedUpdate()
+        private void OnInternalStateChanged(StateNode previousState, StateNode newState)
         {
-            CurrentState?.FixedUpdate();
-        }
-
-        public void ChangeState(PlayerBaseState newState)
-        {
-            if (CurrentState == newState) return;
-
-            CurrentState?.Exit();
-            CurrentState = newState;
+            if (newState == null) return;
             currentStateName = newState.GetType().Name;
-            CurrentState.Enter();
-
-            StateChanged?.Invoke(CurrentState);
+            StateChanged?.Invoke(newState);
         }
 
         private void OnJumpPressed()
@@ -86,12 +116,16 @@ namespace ProjectOni.Player.Movement
             if (Controller.IsOnWall && !Controller.IsGrounded)
             {
                 Controller.ExecuteWallJump(Controller.WallDir);
-                ChangeState(AirborneState);
+                machine.SetState(AirborneState);
             }
             else if (CanJump())
             {
                 Controller.ExecuteJump();
-                ChangeState(AirborneState);
+                machine.SetState(AirborneState);
+            }
+            else
+            {
+                _lastJumpPressedTime = Time.time;
             }
         }
 
@@ -99,14 +133,12 @@ namespace ProjectOni.Player.Movement
         {
             if (Controller.CanDodge)
             {
-                ChangeState(DodgeState);
+                machine.SetState(DodgeState);
             }
         }
 
         private bool CanJump() => Controller.IsGrounded || Controller.CanCoyote || Controller.AirJumpsRemaining > 0 || Controller.IsOnWall;
         
-        // Helper to check if Jump is still held for variable jump height
-        // This is tricky with events, so we'll check the InputReader directly
-        public bool IsJumpActionHeld() => InputReader != null && InputReader.IsJumpHeld;
+        public bool IsJumpActionHeld() => ProjectOni.Managers.InputManager.Instance != null && ProjectOni.Managers.InputManager.Instance.IsJumpHeld;
     }
 }

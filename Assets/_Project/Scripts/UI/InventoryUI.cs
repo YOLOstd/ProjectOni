@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 using ProjectOni.Core;
 using ProjectOni.Data;
 
@@ -7,40 +8,37 @@ namespace ProjectOni.UI
 {
     public class InventoryUI : MonoBehaviour
     {
-        [Header("Equipment Icons")]
-        [SerializeField] private Image weaponIcon;
-        [SerializeField] private Image chestIcon;
-        [SerializeField] private Image ringOneIcon;
-        [SerializeField] private Image ringTwoIcon;
+        [System.Serializable]
+        public struct SlotMapping
+        {
+            public EquipmentSlotDefinition definition;
+            public Image targetIcon;
+        }
+
+        [Header("Dynamic Mappings")]
+        [SerializeField] private List<SlotMapping> slotMappings;
 
         [Header("Fallbacks")]
         [SerializeField] private Sprite emptyIcon;
 
         private void OnEnable()
         {
-            GameEvents.OnItemEquipped += UpdateInventoryUI;
+            GameEvents.OnEquipmentSlotChanged += HandleSlotChanged;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnItemEquipped -= UpdateInventoryUI;
+            GameEvents.OnEquipmentSlotChanged -= HandleSlotChanged;
         }
 
-        private void UpdateInventoryUI(ItemData item)
+        private void HandleSlotChanged(EquipmentSlotDefinition slot, ModularEquipmentData item)
         {
-            // Simple logic matching EquiptItem in PlayerInventory
-            switch (item.type)
+            foreach (var mapping in slotMappings)
             {
-                case ItemType.Weapon:
-                    UpdateIcon(weaponIcon, item.icon);
-                    break;
-                case ItemType.Chest:
-                    UpdateIcon(chestIcon, item.icon);
-                    break;
-                case ItemType.Ring:
-                    // Usually more logic to find which ring was swapped
-                    UpdateIcon(ringOneIcon, item.icon);
-                    break;
+                if (mapping.definition == slot)
+                {
+                    UpdateIcon(mapping.targetIcon, item != null ? item.icon : null);
+                }
             }
         }
 

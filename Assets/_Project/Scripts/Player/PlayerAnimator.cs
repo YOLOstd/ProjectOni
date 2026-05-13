@@ -1,12 +1,13 @@
 using UnityEngine;
 using ProjectOni.Player;
+using PurrNet;
 
 namespace ProjectOni.Player
 {
     /// <summary>
     /// VERY primitive animator example.
     /// </summary>
-    public class PlayerAnimator : MonoBehaviour
+    public class PlayerAnimator : NetworkBehaviour
     {
         [Header("References")] [SerializeField]
         private Animator _anim;
@@ -27,6 +28,7 @@ namespace ProjectOni.Player
 
         private AudioSource _source;
         private PlayerController _player;
+        private ProjectOni.Player.Movement.PlayerMovementStateMachine _stateMachine;
         private bool _grounded;
         private ParticleSystem.MinMaxGradient _currentGradient;
         
@@ -36,14 +38,38 @@ namespace ProjectOni.Player
         {
             _source = GetComponent<AudioSource>();
             _player = GetComponentInParent<PlayerController>();
+            _stateMachine = GetComponentInParent<ProjectOni.Player.Movement.PlayerMovementStateMachine>();
+        }
+
+        protected override void OnSpawned()
+        {
+            base.OnSpawned();
+            if (isOwner)
+            {
+                _player.Jumped += SendJumpRpc;
+                _player.GroundedChanged += SendGroundedRpc;
+            }
+            _stateMachine.machine.onStateChanged += OnStateChanged;
+        }
+
+        protected override void OnDespawned(bool asServer)
+        {
+            base.OnDespawned(asServer);
+            if (isOwner)
+            {
+                _player.Jumped -= SendJumpRpc;
+                _player.GroundedChanged -= SendGroundedRpc;
+            }
+            _stateMachine.machine.onStateChanged -= OnStateChanged;
         }
 
         private void OnEnable()
         {
-            _player.Jumped += OnJumped;
-            _player.GroundedChanged += OnGroundedChanged;
-            _player.DodgingChanged += OnDodgingChanged;
-            _player.CrouchingChanged += OnCrouchingChanged;
+            if (isSpawned && isOwner)
+            {
+                _player.Jumped += SendJumpRpc;
+                _player.GroundedChanged += SendGroundedRpc;
+            }
 
             CacheParameters();
 
@@ -59,41 +85,70 @@ namespace ProjectOni.Player
 
         private void OnDisable()
         {
-            _player.Jumped -= OnJumped;
-            _player.GroundedChanged -= OnGroundedChanged;
-            _player.DodgingChanged -= OnDodgingChanged;
-            _player.CrouchingChanged -= OnCrouchingChanged;
+            if (isSpawned && isOwner)
+            {
+                _player.Jumped -= SendJumpRpc;
+                _player.GroundedChanged -= SendGroundedRpc;
+            }
 
             if (_moveParticles != null) _moveParticles.Stop();
         }
+
+        private Vector3 _lastPosition;
+        private Vector2 _visualVelocity;
 
         private void Update()
         {
             if (_player == null) return;
 
+            _visualVelocity = (transform.position - _lastPosition) / Time.deltaTime;
+            _lastPosition = transform.position;
+
             DetectGroundColor();
             HandleSpriteFlip();
+            
             HandleMovementStats();
             UpdateWallVisuals();
         }
 
         private void UpdateWallVisuals()
         {
-            SafeSetBool(WallSlidingKey, _player.IsWallSliding && !_player.IsCrouching);
-            SafeSetBool(CrouchingKey, _player.IsCrouching);
-            SafeSetBool(DodgingKey, _player.IsDodging);
+            SafeSetBool(WallSlidingKey, _player.IsWallSliding.value);
+            SafeSetBool(DodgingKey, _stateMachine.machine.currentState is ProjectOni.Player.Movement.PlayerDodgeState);
+        }
+
+        private void OnStateChanged(PurrNet.StateMachine.StateNode prev, PurrNet.StateMachine.StateNode next)
+        {
+            if (next is ProjectOni.Player.Movement.PlayerDodgeState)
+            {
+                if (_dodgeParticles != null) _dodgeParticles.Play();
+            }
+            else if (prev is ProjectOni.Player.Movement.PlayerDodgeState)
+            {
+                if (_dodgeParticles != null) _dodgeParticles.Stop();
+            }
         }
 
         private void HandleSpriteFlip()
         {
-            if (_player.GetComponent<InputReader>().MoveDirection.x != 0) 
-                _sprite.flipX = _player.GetComponent<InputReader>().MoveDirection.x < 0;
+            if (_player.FacingDir != 0) 
+                _sprite.flipX = _player.FacingDir < 0;
         }
 
         private void HandleMovementStats()
         {
-            var velocity = _player.CurrentVelocity;
-            var inputStrength = Mathf.Abs(_player.GetComponent<InputReader>().MoveDirection.x);
+            float inputStrength = 0;
+            if (_player.isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null) inputStrength = Mathf.Abs(input.MoveDirection.x);
+            }
+            else
+            {
+                inputStrength = Mathf.Abs(_visualVelocity.x) > 0.1f ? 1f : 0f;
+            }
+
+            var velocity = _player.isOwner ? _player.CurrentVelocity : _visualVelocity;
 
             // MoveSpeed for Idle -> Run transition
             SafeSetFloat(MoveSpeedKey, Mathf.Abs(velocity.x));
@@ -108,13 +163,18 @@ namespace ProjectOni.Player
                 _moveParticles.transform.localScale = Vector3.MoveTowards(_moveParticles.transform.localScale, Vector3.one * inputStrength, 2 * Time.deltaTime);
         }
 
-        private void OnJumped()
+        private void SendJumpRpc() => RpcOnJumped();
+        private void SendGroundedRpc(bool grounded, float impact) => RpcOnGroundedChanged(grounded, impact);
+
+        [ObserversRpc(runLocally: true, requireServer: false)]
+        private void RpcOnJumped()
         {
+            // Force state consistency
             SafeSetTrigger(JumpKey);
-            SafeResetTrigger(GroundedKey);
+            SafeSetBool(GroundedBoolKey, false); // Ensure we switch to airborne visuals immediately
+            SafeResetTrigger(GroundedKey);      // Cancel any pending landing triggers
 
-
-            if (_grounded) // Avoid coyote
+            if (_grounded) // Avoid coyote particles if we're technically in air
             {
                 SetColor(_jumpParticles);
                 SetColor(_launchParticles);
@@ -122,7 +182,8 @@ namespace ProjectOni.Player
             }
         }
 
-        private void OnGroundedChanged(bool grounded, float impact)
+        [ObserversRpc(runLocally: true, requireServer: false)]
+        private void RpcOnGroundedChanged(bool grounded, float impact)
         {
             _grounded = grounded;
             SafeSetBool(GroundedBoolKey, grounded);
@@ -132,8 +193,16 @@ namespace ProjectOni.Player
                 DetectGroundColor();
                 SetColor(_landParticles);
 
+                // If we land, we should definitely NOT be starting a jump animation from an old trigger
                 SafeResetTrigger(JumpKey);
-                SafeSetTrigger(GroundedKey);
+                
+                // Only trigger the "Land" transition if we aren't immediately jumping again
+                // This prevents the clunky "Falling -> Jump" pop when landing with a buffered jump
+                if (_player.CurrentVelocity.y <= 0.1f)
+                {
+                    SafeSetTrigger(GroundedKey);
+                }
+
                 if (_source != null && _footsteps != null && _footsteps.Length > 0) 
                     _source.PlayOneShot(_footsteps[Random.Range(0, _footsteps.Length)]);
                 if (_moveParticles != null) _moveParticles.Play();
@@ -164,24 +233,6 @@ namespace ProjectOni.Player
             main.startColor = _currentGradient;
         }
 
-        private void OnDodgingChanged()
-        {
-            if (_player.IsDodging)
-            {
-                SafeSetTrigger(DodgeTriggerKey);
-                if (_dodgeParticles != null) _dodgeParticles.Play();
-            }
-            else
-            {
-                if (_dodgeParticles != null) _dodgeParticles.Stop();
-            }
-        }
-
-        private void OnCrouchingChanged()
-        {
-            SafeSetBool(CrouchingKey, _player.IsCrouching);
-        }
-
         #region Safe Animator Helpers
         private void SafeSetFloat(int hash, float value) { if (_validParameters.Contains(hash)) _anim.SetFloat(hash, value); }
         private void SafeSetBool(int hash, bool value) { if (_validParameters.Contains(hash)) _anim.SetBool(hash, value); }
@@ -196,7 +247,7 @@ namespace ProjectOni.Player
         private static readonly int VerticalVelocityKey = Animator.StringToHash("VerticalVelocity");
         private static readonly int JumpKey = Animator.StringToHash("Jump");
         private static readonly int DodgingKey = Animator.StringToHash("Dodging");
-        private static readonly int CrouchingKey = Animator.StringToHash("Crouching");
+
         private static readonly int WallSlidingKey = Animator.StringToHash("WallSliding");
         private static readonly int DodgeTriggerKey = Animator.StringToHash("Dodge");
     }
