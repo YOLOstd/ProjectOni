@@ -43,19 +43,32 @@ namespace ProjectOni.Managers
             _jumpAction = _playerInput.actions["Jump"];
             _dodgeAction = _playerInput.actions["Dodge"];
 
-            _interactAction = _playerInput.actions["Interact"];
-            _toggleMenuAction = _playerInput.actions.FindAction("ToggleMenu", false);
+            _interactAction = _playerInput.actions.FindAction("Interact");
+            _toggleMenuAction = _playerInput.actions.FindAction("ToggleMenu");
+
+            if (_toggleMenuAction == null)
+            {
+                Debug.LogWarning("InputManager: Could not find 'ToggleMenu' action in input asset!");
+            }
+            else
+            {
+                Debug.Log("InputManager: Successfully bound 'ToggleMenu' action.");
+            }
         }
 
         private void OnEnable()
         {
-            _jumpAction.performed += OnJumpTriggered;
-            _jumpAction.canceled += OnJumpCanceled;
-            _dodgeAction.performed += OnDodgeTriggered;
-            _interactAction.performed += OnInteractTriggered;
+            if (_jumpAction != null) _jumpAction.performed += OnJumpTriggered;
+            if (_jumpAction != null) _jumpAction.canceled += OnJumpCanceled;
+            if (_dodgeAction != null) _dodgeAction.performed += OnDodgeTriggered;
+            if (_interactAction != null) _interactAction.performed += OnInteractTriggered;
             
             if (_toggleMenuAction != null)
+            {
                 _toggleMenuAction.performed += OnToggleMenuTriggered;
+                _toggleMenuAction.Enable();
+                Debug.Log($"InputManager: Subscribed to {_toggleMenuAction.name}.performed and enabled action.");
+            }
         }
 
         private void OnDisable()
@@ -100,9 +113,22 @@ namespace ProjectOni.Managers
             DodgePressed?.Invoke();
         }
         private void OnInteractTriggered(InputAction.CallbackContext obj) => InteractPressed?.Invoke();
-        private void OnToggleMenuTriggered(InputAction.CallbackContext obj) => MenuTogglePressed?.Invoke();
+        private void OnToggleMenuTriggered(InputAction.CallbackContext obj) 
+        {
+            Debug.Log("InputManager: ToggleMenu action triggered!");
+            MenuTogglePressed?.Invoke();
+        }
 
-        public void EnableGameControls() => _playerInput.SwitchCurrentActionMap("Player"); 
-        public void EnableMenuControls() => _playerInput.SwitchCurrentActionMap("UI");
+        public void EnableGameControls() 
+        {
+            Debug.Log("InputManager: Switching to 'Player' action map.");
+            _playerInput.SwitchCurrentActionMap("Player"); 
+        }
+
+        public void EnableMenuControls() 
+        {
+            Debug.Log("InputManager: Switching to 'UI' action map.");
+            _playerInput.SwitchCurrentActionMap("UI");
+        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectOni.Data;
 using ProjectOni.Core;
+using PurrNet;
 
 namespace ProjectOni.Player
 {
@@ -9,7 +10,7 @@ namespace ProjectOni.Player
     /// The absolute source of truth for what the player is currently wearing/using.
     /// Handles equipment using a decoupled Slot Definition and Item Category system.
     /// </summary>
-    public class EquipmentManager : MonoBehaviour
+    public class EquipmentManager : NetworkBehaviour
     {
         [Header("Slot Configuration")]
         [Tooltip("Define all physical equipment slots for this character here.")]
@@ -20,7 +21,8 @@ namespace ProjectOni.Player
         [SerializeField] private EquipmentSlotDefinition secondaryWeaponSlot;
 
         [Header("State")]
-        public bool isUsingPrimary = true;
+        public readonly SyncVar<bool> isUsingPrimary = new(true, 0f, true);
+        public readonly SyncVar<ModularEquipmentData> activeWeaponVisual = new(null, 0f, true);
 
         // Internal source of truth
         private Dictionary<EquipmentSlotDefinition, ModularEquipmentData> currentEquipment = new Dictionary<EquipmentSlotDefinition, ModularEquipmentData>();
@@ -37,11 +39,31 @@ namespace ProjectOni.Player
             }
         }
 
-        private void Start()
+        protected override void OnSpawned()
         {
-            // Initial notification to sync UI and systems
-            NotifyAllSlots();
-            UpdateActiveWeapon();
+            activeWeaponVisual.onChangedWithOld += OnActiveWeaponVisualChanged;
+
+            if (isOwner)
+            {
+                // Initial notification to sync local UI and systems
+                NotifyAllSlots();
+                UpdateActiveWeapon();
+            }
+            else
+            {
+                // Ensure observers see the current weapon on spawn
+                OnActiveWeaponVisualChanged(null, activeWeaponVisual.value);
+            }
+        }
+
+        protected override void OnDespawned(bool asServer)
+        {
+            activeWeaponVisual.onChangedWithOld -= OnActiveWeaponVisualChanged;
+        }
+
+        private void OnActiveWeaponVisualChanged(ModularEquipmentData oldVal, ModularEquipmentData newVal)
+        {
+            GameEvents.TriggerWeaponSwapped(newVal);
         }
 
         private void NotifyAllSlots()
@@ -58,6 +80,7 @@ namespace ProjectOni.Player
         /// </summary>
         public ModularEquipmentData Equip(ModularEquipmentData item, EquipmentSlotDefinition slot)
         {
+            if (!isOwner) return null;
             if (slot == null) return null;
 
             // Safety check: Is this even a valid slot on this manager?
@@ -85,7 +108,7 @@ namespace ProjectOni.Player
             GameEvents.TriggerEquipmentSlotChanged(slot, item);
 
             // If we updated a weapon slot that is currently active, refresh visuals/logic
-            if ((slot == primaryWeaponSlot && isUsingPrimary) || (slot == secondaryWeaponSlot && !isUsingPrimary))
+            if ((slot == primaryWeaponSlot && isUsingPrimary.value) || (slot == secondaryWeaponSlot && !isUsingPrimary.value))
             {
                 UpdateActiveWeapon();
             }
@@ -103,7 +126,7 @@ namespace ProjectOni.Player
             // 1. Try to find an empty compatible slot
             foreach (var slot in allGameSlots)
             {
-                if (IsSlotEmpty(slot) && slot.acceptedCategories.Contains(item.category))
+                if (isOwner && IsSlotEmpty(slot) && slot.acceptedCategories.Contains(item.category))
                 {
                     Equip(item, slot);
                     return true;
@@ -117,13 +140,17 @@ namespace ProjectOni.Player
 
         public void SwapWeapons()
         {
-            isUsingPrimary = !isUsingPrimary;
+            if (!isOwner) return;
+            isUsingPrimary.value = !isUsingPrimary.value;
             UpdateActiveWeapon();
         }
 
         public ModularEquipmentData GetActiveWeapon()
         {
-            EquipmentSlotDefinition activeSlot = isUsingPrimary ? primaryWeaponSlot : secondaryWeaponSlot;
+            // Observers use the synced visual data since they don't have the full dictionary
+            if (!isOwner && isSpawned) return activeWeaponVisual.value;
+
+            EquipmentSlotDefinition activeSlot = isUsingPrimary.value ? primaryWeaponSlot : secondaryWeaponSlot;
             if (activeSlot == null) return null;
             
             return currentEquipment.ContainsKey(activeSlot) ? currentEquipment[activeSlot] : null;
@@ -132,9 +159,9 @@ namespace ProjectOni.Player
         private void UpdateActiveWeapon()
         {
             ModularEquipmentData active = GetActiveWeapon();
-            GameEvents.TriggerWeaponSwapped(active);
+            activeWeaponVisual.value = active;
             
-            if (active != null)
+            if (active != null && isOwner)
                 Debug.Log($"[EquipmentManager] Active weapon is now: {active.itemName}");
         }
 

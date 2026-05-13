@@ -22,6 +22,14 @@ namespace ProjectOni.UI
             // Find all slot components in children
             _slots.AddRange(GetComponentsInChildren<EquipmentSlotUI>(true));
             
+            // CRITICAL: If this script is on the panel itself, it can't toggle itself back ON.
+            if (menuPanel != null && menuPanel == gameObject)
+            {
+                Debug.LogError("EquipmentMenuUI: Script is attached to the same GameObject as MenuPanel! " +
+                                 "This will prevent the menu from opening after it is closed. " +
+                                 "Please move this script to a parent object that stays active.");
+            }
+
             // Ensure menu is closed on start
             if (menuPanel != null) menuPanel.SetActive(false);
         }
@@ -29,11 +37,27 @@ namespace ProjectOni.UI
         private void OnEnable()
         {
             GameEvents.OnEquipmentSlotChanged += HandleSlotChanged;
-            
+        }
+
+        private void Start()
+        {
+            // Subscribe in Start to ensure InputManager.Instance is initialized
+            SubscribeToInput();
+        }
+
+        private void SubscribeToInput()
+        {
             var input = ProjectOni.Managers.InputManager.Instance;
             if (input != null)
             {
+                // Unsubscribe first to avoid double subscription
+                input.MenuTogglePressed -= ToggleMenu;
                 input.MenuTogglePressed += ToggleMenu;
+                Debug.Log("EquipmentMenuUI: Successfully subscribed to MenuTogglePressed.");
+            }
+            else
+            {
+                Debug.LogWarning("EquipmentMenuUI: InputManager instance not found in Start!");
             }
         }
 
@@ -54,6 +78,13 @@ namespace ProjectOni.UI
             {
                 Debug.LogWarning("EquipmentMenuUI: Menu Panel is not assigned!");
                 return;
+            }
+
+            // Warning: If this script is ON the menuPanel, it will disable itself!
+            if (menuPanel == gameObject)
+            {
+                Debug.LogWarning("EquipmentMenuUI: Script is attached to the same GameObject as MenuPanel. " +
+                                 "Closing the menu will disable this script, preventing it from opening again!");
             }
             
             bool isOpening = !menuPanel.activeSelf;
