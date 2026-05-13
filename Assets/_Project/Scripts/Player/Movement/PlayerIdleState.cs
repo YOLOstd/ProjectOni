@@ -5,36 +5,31 @@ namespace ProjectOni.Player.Movement
 {
     public class PlayerIdleState : PlayerBaseState
     {
-        public PlayerIdleState(PlayerMovementStateMachine stateMachine) : base(stateMachine) { }
-
-        public override void Enter()
+        public override void StateUpdate()
         {
-            // Transition to Idle animation
-        }
+            if (!isOwner) return;
 
-        public override void Update()
-        {
             if (!Controller.IsGrounded)
             {
-                StateMachine.ChangeState(StateMachine.AirborneState);
+                machine.SetState(StateMachine.AirborneState);
                 return;
             }
 
-            if (Input.MoveDirection.x != 0)
+            var input = ProjectOni.Managers.InputManager.Instance;
+            if (input.MoveDirection.x != 0)
             {
-                StateMachine.ChangeState(StateMachine.MoveState);
+                machine.SetState(StateMachine.MoveState);
                 return;
             }
 
-            Controller.SetCrouching(Input.IsCrouchHeld);
+
         }
 
-        public override void FixedUpdate()
+        public override void StateFixedUpdate()
         {
+            if (!isOwner) return;
             // Apply grounding force and handle stopping horizontal momentum
             Controller.HandleHorizontalMovement(0);
         }
-
-        public override void Exit() { }
     }
 }

@@ -1,38 +1,54 @@
 using UnityEngine;
 using ProjectOni.Core;
 using System.Collections.Generic;
+using PurrNet;
 
 namespace ProjectOni.Player
 {
-    public class PlayerInteraction : MonoBehaviour
+    public class PlayerInteraction : NetworkBehaviour
     {
         [Header("Settings")]
         [SerializeField] private float _interactionRadius = 1.5f;
         [SerializeField] private LayerMask _interactableLayer;
 
-        private InputReader _input;
         private IInteractable _nearestInteractable;
-
-        private void Awake()
-        {
-            _input = GetComponentInParent<InputReader>();
-            if (_input == null) _input = GetComponentInChildren<InputReader>();
-        }
 
         private void OnEnable()
         {
-            if (_input == null) _input = GetComponentInParent<InputReader>();
-            
-            if (_input != null)
+            if (isSpawned && isOwner)
             {
-                _input.InteractPressed += OnInteractPressed;
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null) input.InteractPressed += OnInteractPressed;
             }
         }
 
         private void OnDisable()
         {
-            if (_input != null)
-                _input.InteractPressed -= OnInteractPressed;
+            if (isSpawned && isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null) input.InteractPressed -= OnInteractPressed;
+            }
+        }
+
+        protected override void OnSpawned()
+        {
+            base.OnSpawned();
+            if (isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null) input.InteractPressed += OnInteractPressed;
+            }
+        }
+
+        protected override void OnDespawned(bool asServer)
+        {
+            base.OnDespawned(asServer);
+            if (isOwner)
+            {
+                var input = ProjectOni.Managers.InputManager.Instance;
+                if (input != null) input.InteractPressed -= OnInteractPressed;
+            }
         }
 
         private void Update()
@@ -63,10 +79,6 @@ namespace ProjectOni.Player
 
         private void OnInteractPressed()
         {
-            if (_input == null) _input = GetComponentInParent<InputReader>();
-            
-            if (_input == null) return;
-
             if (_nearestInteractable != null)
             {
                 _nearestInteractable.Interact();

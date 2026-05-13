@@ -36,7 +36,7 @@ MonoBehaviour:
   FallAcceleration: 80
   JumpCutMultiplier: 0.5
   CoyoteTime: 0.1
-  JumpBuffer: 0.2
+  JumpBuffer: 0.15
   MaxAirJumps: 1
   WallJumpYForce: 20
   WallJumpXForce: 8

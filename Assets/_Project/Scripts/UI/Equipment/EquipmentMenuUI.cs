@@ -14,7 +14,6 @@ namespace ProjectOni.UI
     {
         [Header("References")]
         [SerializeField] private GameObject menuPanel;
-        [SerializeField] private InputReader inputReader;
 
         private List<EquipmentSlotUI> _slots = new List<EquipmentSlotUI>();
 
@@ -31,13 +30,10 @@ namespace ProjectOni.UI
         {
             GameEvents.OnEquipmentSlotChanged += HandleSlotChanged;
             
-            if (inputReader != null)
+            var input = ProjectOni.Managers.InputManager.Instance;
+            if (input != null)
             {
-                inputReader.MenuTogglePressed += ToggleMenu;
-            }
-            else
-            {
-                Debug.LogWarning("EquipmentMenuUI: Input Reader is not assigned!");
+                input.MenuTogglePressed += ToggleMenu;
             }
         }
 
@@ -45,9 +41,10 @@ namespace ProjectOni.UI
         {
             GameEvents.OnEquipmentSlotChanged -= HandleSlotChanged;
             
-            if (inputReader != null)
+            var input = ProjectOni.Managers.InputManager.Instance;
+            if (input != null)
             {
-                inputReader.MenuTogglePressed -= ToggleMenu;
+                input.MenuTogglePressed -= ToggleMenu;
             }
         }
 

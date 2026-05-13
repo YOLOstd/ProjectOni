@@ -5,32 +5,30 @@ namespace ProjectOni.Player.Movement
 {
     public class PlayerMoveState : PlayerBaseState
     {
-        public PlayerMoveState(PlayerMovementStateMachine stateMachine) : base(stateMachine) { }
-
-        public override void Enter() { }
-
-        public override void Update()
+        public override void StateUpdate()
         {
+            if (!isOwner) return;
+
             if (!Controller.IsGrounded)
             {
-                StateMachine.ChangeState(StateMachine.AirborneState);
+                machine.SetState(StateMachine.AirborneState);
                 return;
             }
 
-            if (Input.MoveDirection.x == 0 && Controller.CurrentVelocity.x == 0)
+            var input = ProjectOni.Managers.InputManager.Instance;
+            if (input.MoveDirection.x == 0 && Controller.CurrentVelocity.x == 0)
             {
-                StateMachine.ChangeState(StateMachine.IdleState);
+                machine.SetState(StateMachine.IdleState);
                 return;
             }
 
-            Controller.SetCrouching(Input.IsCrouchHeld);
+
         }
 
-        public override void FixedUpdate()
+        public override void StateFixedUpdate()
         {
-            Controller.HandleHorizontalMovement(Input.MoveDirection.x);
+            if (!isOwner) return;
+            Controller.HandleHorizontalMovement(ProjectOni.Managers.InputManager.Instance.MoveDirection.x);
         }
-
-        public override void Exit() { }
     }
 }

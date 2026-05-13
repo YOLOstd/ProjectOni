@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectOni.Core;
+using PurrNet;
 
 namespace ProjectOni.Combat
 {
@@ -21,6 +22,16 @@ namespace ProjectOni.Combat
         {
             if (collision.TryGetComponent(out IDamageable damageable))
             {
+                // Networked interaction: Take ownership of the target if it's a networked object
+                if (collision.TryGetComponent(out NetworkIdentity targetIdentity))
+                {
+                    var hitterIdentity = GetComponentInParent<NetworkIdentity>();
+                    if (hitterIdentity != null && hitterIdentity.isOwner)
+                    {
+                        ProjectOni.Networking.NetworkedInteraction.RequestOwnershipOnHit(targetIdentity, hitterIdentity);
+                    }
+                }
+
                 damageable.TakeDamage(_damage);
             }
         }

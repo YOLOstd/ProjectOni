@@ -26,8 +26,7 @@ namespace TarodevController
         [Header("MOVEMENT")] [Tooltip("The top horizontal movement speed")]
         public float MaxSpeed = 14;
 
-        [Tooltip("Speed modifier when crouching"), Range(0.1f, 1f)]
-        public float CrouchSpeedModifier = 0.5f;
+
 
         [Tooltip("The player's capacity to gain horizontal speed")]
         public float Acceleration = 120;

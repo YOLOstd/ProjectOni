@@ -7,34 +7,46 @@ namespace ProjectOni.Player.Movement
     {
         private float _timer;
 
-        public PlayerDodgeState(PlayerMovementStateMachine stateMachine) : base(stateMachine) { }
-
         public override void Enter()
         {
             _timer = Controller.Stats.DodgeDuration;
-            Controller.InitiateDodge(Input.MoveDirection);
+            
+            // Visuals (Everyone)
+            StateMachine.Animator.SetTrigger("Dodge");
+
+            // Physics (Owner only)
+            if (isOwner)
+            {
+                Controller.InitiateDodge(ProjectOni.Managers.InputManager.Instance.MoveDirection);
+            }
         }
 
-        public override void Update()
+        public override void StateUpdate()
         {
+            if (!isOwner) return;
+
             _timer -= Time.deltaTime;
             if (_timer <= 0)
             {
                 if (Controller.IsGrounded)
-                    StateMachine.ChangeState(StateMachine.IdleState);
+                    machine.SetState(StateMachine.IdleState);
                 else
-                    StateMachine.ChangeState(StateMachine.AirborneState);
+                    machine.SetState(StateMachine.AirborneState);
             }
         }
 
-        public override void FixedUpdate()
+        public override void StateFixedUpdate()
         {
+            if (!isOwner) return;
             Controller.HandleDodgeMovement();
         }
 
         public override void Exit()
         {
-            Controller.EndDodge();
+            if (isOwner)
+            {
+                Controller.EndDodge();
+            }
         }
     }
 }

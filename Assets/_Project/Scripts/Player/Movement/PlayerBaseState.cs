@@ -1,24 +1,31 @@
 using UnityEngine;
-using ProjectOni.Player;
+using PurrNet.StateMachine;
 
 namespace ProjectOni.Player.Movement
 {
-    public abstract class PlayerBaseState
+    public abstract class PlayerBaseState : StateNode
     {
         protected PlayerMovementStateMachine StateMachine;
         protected PlayerController Controller;
-        protected InputReader Input;
 
-        public PlayerBaseState(PlayerMovementStateMachine stateMachine)
+        protected virtual void Awake()
         {
-            StateMachine = stateMachine;
-            Controller = stateMachine.Controller;
-            Input = stateMachine.InputReader;
+            StateMachine = GetComponentInParent<PlayerMovementStateMachine>();
+            Controller = GetComponentInParent<PlayerController>();
         }
 
-        public abstract void Enter();
-        public abstract void Update();
-        public abstract void FixedUpdate();
-        public abstract void Exit();
+        public override void Enter() { }
+        public override void Exit() { }
+        public override void StateUpdate() { }
+        
+        protected virtual void FixedUpdate()
+        {
+            if (isCurrentState)
+            {
+                StateFixedUpdate();
+            }
+        }
+
+        public virtual void StateFixedUpdate() { }
     }
 }
