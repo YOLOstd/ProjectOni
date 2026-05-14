@@ -31,6 +31,7 @@ namespace ProjectOni.World
 
         public void Interact()
         {
+            Debug.Log("INTERACT");
             if (_item == null) return;
 
             var player = GameObject.FindGameObjectWithTag("Player");
@@ -40,10 +41,18 @@ namespace ProjectOni.World
 
             // 1. Try Auto-Equip if it's modular equipment
             var eqManager = player.GetComponentInChildren<EquipmentManager>();
-            if (_item is ModularEquipmentData equipment && eqManager != null && equipment.category != null)
+            if (_item is EquipmentBlueprint blueprint && eqManager != null && blueprint.category != null)
             {
+                // Create a temporary instance with a random seed for now
+                var instance = new EquipmentInstance
+                {
+                    blueprint = blueprint,
+                    itemLevel = 1, // Default level
+                    seed = UnityEngine.Random.Range(0, int.MaxValue)
+                };
+
                 // Auto-equip ONLY if there is a compatible empty slot
-                if (eqManager.EquipToFirstCompatibleSlot(equipment))
+                if (eqManager.EquipToFirstCompatibleSlot(instance))
                 {
                     handled = true;
                     Debug.Log($"[ItemPickup] Auto-equipped: {_item.itemName}");

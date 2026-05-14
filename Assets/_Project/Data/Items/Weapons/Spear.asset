@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5071439d18064c458cdb38eb2a2c500, type: 3}
+  m_Name: Spear
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Data.EquipmentBlueprint
+  itemName: Rusted Spear
+  icon: {fileID: 5018245360316724722, guid: eb52e030d34010d4fb69e4f7fb07f18e, type: 3}
+  type: 0
+  category: {fileID: 11400000, guid: 8437866aa7aaf324eb24409586011749, type: 2}
+  baseStats:
+  - type: 1
+    value: 10
+  - type: 3
+    value: 0.7
+  - type: 4
+    value: 0.05
+  - type: 5
+    value: 1.5
+  traitLootTable: {fileID: 11400000, guid: 2370904a446786a459ad887b4c4aef79, type: 2}
+  visualPrefab: {fileID: 4122468773087615556, guid: df2c8d551de761d4d8071bf3fae5a493, type: 3}

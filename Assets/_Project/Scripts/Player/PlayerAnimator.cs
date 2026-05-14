@@ -1,5 +1,6 @@
 using UnityEngine;
 using ProjectOni.Player;
+using ProjectOni.Data;
 using PurrNet;
 
 namespace ProjectOni.Player
@@ -29,6 +30,7 @@ namespace ProjectOni.Player
         private AudioSource _source;
         private PlayerController _player;
         private ProjectOni.Player.Movement.PlayerMovementStateMachine _stateMachine;
+        private EquipmentManager _equipment;
         private bool _grounded;
         private ParticleSystem.MinMaxGradient _currentGradient;
         
@@ -39,6 +41,7 @@ namespace ProjectOni.Player
             _source = GetComponent<AudioSource>();
             _player = GetComponentInParent<PlayerController>();
             _stateMachine = GetComponentInParent<ProjectOni.Player.Movement.PlayerMovementStateMachine>();
+            _equipment = GetComponentInParent<EquipmentManager>();
         }
 
         protected override void OnSpawned()
@@ -50,6 +53,13 @@ namespace ProjectOni.Player
                 _player.GroundedChanged += SendGroundedRpc;
             }
             _stateMachine.machine.onStateChanged += OnStateChanged;
+
+            if (_equipment != null)
+            {
+                _equipment.activeWeaponVisual.onChangedWithOld += OnWeaponChanged;
+                // Initial update for late joiners or current state
+                UpdateWeaponVisual(default, _equipment.activeWeaponVisual.value);
+            }
         }
 
         protected override void OnDespawned(bool asServer)
@@ -61,6 +71,11 @@ namespace ProjectOni.Player
                 _player.GroundedChanged -= SendGroundedRpc;
             }
             _stateMachine.machine.onStateChanged -= OnStateChanged;
+
+            if (_equipment != null)
+            {
+                _equipment.activeWeaponVisual.onChangedWithOld -= OnWeaponChanged;
+            }
         }
 
         private void OnEnable()
@@ -114,7 +129,7 @@ namespace ProjectOni.Player
         private void UpdateWallVisuals()
         {
             SafeSetBool(WallSlidingKey, _player.IsWallSliding.value);
-            SafeSetBool(DodgingKey, _stateMachine.machine.currentState is ProjectOni.Player.Movement.PlayerDodgeState);
+            SafeSetBool(DodgingKey, _stateMachine.machine.currentStateNode is ProjectOni.Player.Movement.PlayerDodgeState);
         }
 
         private void OnStateChanged(PurrNet.StateMachine.StateNode prev, PurrNet.StateMachine.StateNode next)
@@ -239,6 +254,41 @@ namespace ProjectOni.Player
         private void SafeSetTrigger(int hash) { if (_validParameters.Contains(hash)) _anim.SetTrigger(hash); }
         private void SafeResetTrigger(int hash) { if (_validParameters.Contains(hash)) _anim.ResetTrigger(hash); }
         #endregion
+
+        [SerializeField] private Transform _weaponHoldPoint;
+        private GameObject _spawnedWeaponVisual;
+
+        private void OnWeaponChanged(EquipmentInstance oldVal, EquipmentInstance newVal)
+        {
+            UpdateWeaponVisual(oldVal, newVal);
+        }
+
+        private void UpdateWeaponVisual(EquipmentInstance oldVal, EquipmentInstance newVal)
+        {
+            // Destroy previous visual
+            if (_spawnedWeaponVisual != null)
+            {
+                Destroy(_spawnedWeaponVisual);
+                _spawnedWeaponVisual = null;
+            }
+
+            // Only spawn if new item is valid and has a prefab
+            if (!newVal.IsValid || newVal.blueprint == null || newVal.blueprint.visualPrefab == null)
+                return;
+
+            if (_weaponHoldPoint == null)
+            {
+                Debug.LogWarning($"[PlayerAnimator] No weapon hold point assigned on {gameObject.name}!");
+                return;
+            }
+
+            // Spawn and parent
+            _spawnedWeaponVisual = Instantiate(newVal.blueprint.visualPrefab, _weaponHoldPoint);
+            _spawnedWeaponVisual.transform.localPosition = Vector3.zero;
+            _spawnedWeaponVisual.transform.localRotation = Quaternion.identity;
+            
+            Debug.Log($"[PlayerAnimator] Updated weapon visual to: {newVal.blueprint.itemName}");
+        }
 
         private static readonly int GroundedKey = Animator.StringToHash("Grounded");
         private static readonly int GroundedBoolKey = Animator.StringToHash("IsGrounded");

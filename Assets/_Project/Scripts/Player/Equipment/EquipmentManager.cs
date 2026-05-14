@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using ProjectOni.Data;
 using ProjectOni.Core;
+using PurrNet;
 
 namespace ProjectOni.Player
 {
@@ -9,7 +10,7 @@ namespace ProjectOni.Player
     /// The absolute source of truth for what the player is currently wearing/using.
     /// Handles equipment using a decoupled Slot Definition and Item Category system.
     /// </summary>
-    public class EquipmentManager : MonoBehaviour
+    public class EquipmentManager : NetworkBehaviour
     {
         [Header("Slot Configuration")]
         [Tooltip("Define all physical equipment slots for this character here.")]
@@ -20,10 +21,11 @@ namespace ProjectOni.Player
         [SerializeField] private EquipmentSlotDefinition secondaryWeaponSlot;
 
         [Header("State")]
-        public bool isUsingPrimary = true;
+        public readonly SyncVar<bool> isUsingPrimary = new(true, 0f, true);
+        public readonly SyncVar<EquipmentInstance> activeWeaponVisual = new(default, 0f, true);
 
         // Internal source of truth
-        private Dictionary<EquipmentSlotDefinition, ModularEquipmentData> currentEquipment = new Dictionary<EquipmentSlotDefinition, ModularEquipmentData>();
+        private Dictionary<EquipmentSlotDefinition, EquipmentInstance> currentEquipment = new Dictionary<EquipmentSlotDefinition, EquipmentInstance>();
 
         private void Awake()
         {
@@ -32,16 +34,36 @@ namespace ProjectOni.Player
             {
                 if (slot != null && !currentEquipment.ContainsKey(slot))
                 {
-                    currentEquipment[slot] = null;
+                    currentEquipment[slot] = default;
                 }
             }
         }
 
-        private void Start()
+        protected override void OnSpawned()
         {
-            // Initial notification to sync UI and systems
-            NotifyAllSlots();
-            UpdateActiveWeapon();
+            activeWeaponVisual.onChangedWithOld += OnActiveWeaponVisualChanged;
+
+            if (isOwner)
+            {
+                // Initial notification to sync local UI and systems
+                NotifyAllSlots();
+                UpdateActiveWeapon();
+            }
+            else
+            {
+                // Ensure observers see the current weapon on spawn
+                OnActiveWeaponVisualChanged(default, activeWeaponVisual.value);
+            }
+        }
+
+        protected override void OnDespawned(bool asServer)
+        {
+            activeWeaponVisual.onChangedWithOld -= OnActiveWeaponVisualChanged;
+        }
+
+        private void OnActiveWeaponVisualChanged(EquipmentInstance oldVal, EquipmentInstance newVal)
+        {
+            GameEvents.TriggerWeaponSwapped(newVal);
         }
 
         private void NotifyAllSlots()
@@ -56,36 +78,39 @@ namespace ProjectOni.Player
         /// Equips an item into a specific slot if it's compatible.
         /// Returns the item that was previously in that slot (if any).
         /// </summary>
-        public ModularEquipmentData Equip(ModularEquipmentData item, EquipmentSlotDefinition slot)
+        public EquipmentInstance Equip(EquipmentInstance item, EquipmentSlotDefinition slot)
         {
-            if (slot == null) return null;
+            if (!isOwner) return default;
+            if (slot == null) return default;
 
             // Safety check: Is this even a valid slot on this manager?
             if (!currentEquipment.ContainsKey(slot))
             {
                 Debug.LogWarning($"[EquipmentManager] {slot.slotName} is not a registered slot on this character!");
-                return null;
+                return default;
             }
 
             // Decoupled Check: Can the item fit in this slot?
-            if (item != null)
+            if (item.IsValid)
             {
-                if (item.category == null || !slot.acceptedCategories.Contains(item.category))
+                if (item.blueprint.category == null || !slot.acceptedCategories.Contains(item.blueprint.category))
                 {
-                    Debug.LogWarning($"[EquipmentManager] Cannot equip {item.itemName} in {slot.slotName}! " +
+                    Debug.LogWarning($"[EquipmentManager] Cannot equip {item.blueprint.itemName} in {slot.slotName}! " +
                                      $"Slot only accepts: {string.Join(", ", slot.acceptedCategories.ConvertAll(c => c.categoryName))}");
-                    return null;
+                    return default;
                 }
             }
 
-            ModularEquipmentData oldItem = currentEquipment[slot];
+            EquipmentInstance oldItem = currentEquipment[slot];
             currentEquipment[slot] = item;
 
             // Notify systems
+                        Debug.Log($"[EquipmentManager] Equipping {item.blueprint.itemName} to slot: {slot.slotName}");
             GameEvents.TriggerEquipmentSlotChanged(slot, item);
 
+
             // If we updated a weapon slot that is currently active, refresh visuals/logic
-            if ((slot == primaryWeaponSlot && isUsingPrimary) || (slot == secondaryWeaponSlot && !isUsingPrimary))
+            if ((slot == primaryWeaponSlot && isUsingPrimary.value) || (slot == secondaryWeaponSlot && !isUsingPrimary.value))
             {
                 UpdateActiveWeapon();
             }
@@ -96,14 +121,14 @@ namespace ProjectOni.Player
         /// <summary>
         /// Attempts to equip an item into the first available compatible slot.
         /// </summary>
-        public bool EquipToFirstCompatibleSlot(ModularEquipmentData item)
+        public bool EquipToFirstCompatibleSlot(EquipmentInstance item)
         {
-            if (item == null || item.category == null) return false;
+            if (!item.IsValid || item.blueprint.category == null) return false;
 
             // 1. Try to find an empty compatible slot
             foreach (var slot in allGameSlots)
             {
-                if (IsSlotEmpty(slot) && slot.acceptedCategories.Contains(item.category))
+                if (isOwner && IsSlotEmpty(slot) && slot.acceptedCategories.Contains(item.blueprint.category))
                 {
                     Equip(item, slot);
                     return true;
@@ -117,25 +142,29 @@ namespace ProjectOni.Player
 
         public void SwapWeapons()
         {
-            isUsingPrimary = !isUsingPrimary;
+            if (!isOwner) return;
+            isUsingPrimary.value = !isUsingPrimary.value;
             UpdateActiveWeapon();
         }
 
-        public ModularEquipmentData GetActiveWeapon()
+        public EquipmentInstance GetActiveWeapon()
         {
-            EquipmentSlotDefinition activeSlot = isUsingPrimary ? primaryWeaponSlot : secondaryWeaponSlot;
-            if (activeSlot == null) return null;
+            // Observers use the synced visual data since they don't have the full dictionary
+            if (!isOwner && isSpawned) return activeWeaponVisual.value;
+
+            EquipmentSlotDefinition activeSlot = isUsingPrimary.value ? primaryWeaponSlot : secondaryWeaponSlot;
+            if (activeSlot == null) return default;
             
-            return currentEquipment.ContainsKey(activeSlot) ? currentEquipment[activeSlot] : null;
+            return currentEquipment.ContainsKey(activeSlot) ? currentEquipment[activeSlot] : default;
         }
 
         private void UpdateActiveWeapon()
         {
-            ModularEquipmentData active = GetActiveWeapon();
-            GameEvents.TriggerWeaponSwapped(active);
+            EquipmentInstance active = GetActiveWeapon();
+            activeWeaponVisual.value = active;
             
-            if (active != null)
-                Debug.Log($"[EquipmentManager] Active weapon is now: {active.itemName}");
+            if (active.IsValid && isOwner)
+                Debug.Log($"[EquipmentManager] Active weapon is now: {active.blueprint.itemName}");
         }
 
         /// <summary>
@@ -144,7 +173,7 @@ namespace ProjectOni.Player
         public bool IsSlotEmpty(EquipmentSlotDefinition slot)
         {
             if (slot == null) return false;
-            return currentEquipment.ContainsKey(slot) && currentEquipment[slot] == null;
+            return currentEquipment.ContainsKey(slot) && !currentEquipment[slot].IsValid;
         }
     }
 }

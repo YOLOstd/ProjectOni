@@ -22,17 +22,39 @@ namespace ProjectOni.UI
             // Find all slot components in children
             _slots.AddRange(GetComponentsInChildren<EquipmentSlotUI>(true));
             
+            // Safety check for duplicate slot assignments in UI
+            HashSet<EquipmentSlotDefinition> assignedDefinitions = new HashSet<EquipmentSlotDefinition>();
+            foreach (var slot in _slots)
+            {
+                if (slot.SlotDefinition == null) continue;
+                if (!assignedDefinitions.Add(slot.SlotDefinition))
+                {
+                    Debug.LogWarning($"[EquipmentMenuUI] Multiple UI slots are assigned to the same definition: {slot.SlotDefinition.slotName}. This will cause display issues!");
+                }
+            }
+
             // Ensure menu is closed on start
-            if (menuPanel != null) menuPanel.SetActive(false);
+            menuPanel?.SetActive(false);
         }
 
         private void OnEnable()
         {
             GameEvents.OnEquipmentSlotChanged += HandleSlotChanged;
-            
+        }
+
+        private void Start()
+        {
+            // Subscribe in Start to ensure InputManager.Instance is initialized
+            SubscribeToInput();
+        }
+
+        private void SubscribeToInput()
+        {
             var input = ProjectOni.Managers.InputManager.Instance;
             if (input != null)
             {
+                // Unsubscribe first to avoid double subscription
+                input.MenuTogglePressed -= ToggleMenu;
                 input.MenuTogglePressed += ToggleMenu;
             }
         }
@@ -52,36 +74,30 @@ namespace ProjectOni.UI
         {
             if (menuPanel == null)
             {
-                Debug.LogWarning("EquipmentMenuUI: Menu Panel is not assigned!");
                 return;
             }
+
             
             bool isOpening = !menuPanel.activeSelf;
-            Debug.Log($"EquipmentMenuUI: Toggling menu. Opening: {isOpening}");
             menuPanel.SetActive(isOpening);
             
-            // Handle game state when menu is open
-            if (isOpening)
-            {
-                // Optional: Pause game or unlock cursor
-                // Time.timeScale = 0f; 
-                Debug.Log("Equipment Menu Opened");
-            }
-            else
-            {
-                // Time.timeScale = 1f;
-                Debug.Log("Equipment Menu Closed");
-            }
         }
 
-        private void HandleSlotChanged(EquipmentSlotDefinition slot, ModularEquipmentData item)
+        private void HandleSlotChanged(EquipmentSlotDefinition slot, EquipmentInstance item)
         {
+            bool foundSlot = false;
             foreach (var slotUI in _slots)
             {
                 if (slotUI.SlotDefinition == slot)
                 {
                     slotUI.SetItem(item);
+                    foundSlot = true;
                 }
+            }
+
+            if (!foundSlot && item.IsValid)
+            {
+                Debug.LogWarning($"[EquipmentMenuUI] Received update for slot {slot.slotName}, but no UI slot is configured for it!");
             }
         }
     }
