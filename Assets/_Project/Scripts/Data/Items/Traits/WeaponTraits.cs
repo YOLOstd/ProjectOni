@@ -3,8 +3,7 @@ using UnityEngine;
 
 namespace ProjectOni.Data
 {
-    [Serializable]
-    public abstract class WeaponTrait : IEquipmentTrait
+    public abstract class WeaponTrait : EquipmentTraitSO
     {
         [Header("Common Weapon Properties")]
         public float attackSpeed; // e.g., 1.5 swings per second
@@ -13,7 +12,7 @@ namespace ProjectOni.Data
         public string hitSoundEffect;
     }
 
-    [Serializable]
+    [CreateAssetMenu(fileName = "New Melee Weapon Trait", menuName = "Project Oni/Traits/Melee Weapon")]
     public class MeleeWeaponTrait : WeaponTrait
     {
         [Header("Melee Properties")]
@@ -22,7 +21,7 @@ namespace ProjectOni.Data
         public GameObject hitSparkPrefab;
     }
 
-    [Serializable]
+    [CreateAssetMenu(fileName = "New Ranged Weapon Trait", menuName = "Project Oni/Traits/Ranged Weapon")]
     public class RangedWeaponTrait : WeaponTrait
     {
         [Header("Ranged Properties")]

@@ -22,16 +22,19 @@ namespace ProjectOni.UI
             // Find all slot components in children
             _slots.AddRange(GetComponentsInChildren<EquipmentSlotUI>(true));
             
-            // CRITICAL: If this script is on the panel itself, it can't toggle itself back ON.
-            if (menuPanel != null && menuPanel == gameObject)
+            // Safety check for duplicate slot assignments in UI
+            HashSet<EquipmentSlotDefinition> assignedDefinitions = new HashSet<EquipmentSlotDefinition>();
+            foreach (var slot in _slots)
             {
-                Debug.LogError("EquipmentMenuUI: Script is attached to the same GameObject as MenuPanel! " +
-                                 "This will prevent the menu from opening after it is closed. " +
-                                 "Please move this script to a parent object that stays active.");
+                if (slot.SlotDefinition == null) continue;
+                if (!assignedDefinitions.Add(slot.SlotDefinition))
+                {
+                    Debug.LogWarning($"[EquipmentMenuUI] Multiple UI slots are assigned to the same definition: {slot.SlotDefinition.slotName}. This will cause display issues!");
+                }
             }
 
             // Ensure menu is closed on start
-            if (menuPanel != null) menuPanel.SetActive(false);
+            menuPanel?.SetActive(false);
         }
 
         private void OnEnable()
@@ -53,11 +56,6 @@ namespace ProjectOni.UI
                 // Unsubscribe first to avoid double subscription
                 input.MenuTogglePressed -= ToggleMenu;
                 input.MenuTogglePressed += ToggleMenu;
-                Debug.Log("EquipmentMenuUI: Successfully subscribed to MenuTogglePressed.");
-            }
-            else
-            {
-                Debug.LogWarning("EquipmentMenuUI: InputManager instance not found in Start!");
             }
         }
 
@@ -76,43 +74,31 @@ namespace ProjectOni.UI
         {
             if (menuPanel == null)
             {
-                Debug.LogWarning("EquipmentMenuUI: Menu Panel is not assigned!");
                 return;
             }
 
-            // Warning: If this script is ON the menuPanel, it will disable itself!
-            if (menuPanel == gameObject)
-            {
-                Debug.LogWarning("EquipmentMenuUI: Script is attached to the same GameObject as MenuPanel. " +
-                                 "Closing the menu will disable this script, preventing it from opening again!");
-            }
             
             bool isOpening = !menuPanel.activeSelf;
-            Debug.Log($"EquipmentMenuUI: Toggling menu. Opening: {isOpening}");
             menuPanel.SetActive(isOpening);
             
-            // Handle game state when menu is open
-            if (isOpening)
-            {
-                // Optional: Pause game or unlock cursor
-                // Time.timeScale = 0f; 
-                Debug.Log("Equipment Menu Opened");
-            }
-            else
-            {
-                // Time.timeScale = 1f;
-                Debug.Log("Equipment Menu Closed");
-            }
         }
 
-        private void HandleSlotChanged(EquipmentSlotDefinition slot, ModularEquipmentData item)
+        private void HandleSlotChanged(EquipmentSlotDefinition slot, EquipmentInstance item)
         {
+            bool foundSlot = false;
             foreach (var slotUI in _slots)
             {
                 if (slotUI.SlotDefinition == slot)
                 {
+                    Debug.Log($"[EquipmentMenuUI] Updating UI slot {slot.slotName} with {item.blueprint?.itemName ?? "Empty"}");
                     slotUI.SetItem(item);
+                    foundSlot = true;
                 }
+            }
+
+            if (!foundSlot && item.IsValid)
+            {
+                Debug.LogWarning($"[EquipmentMenuUI] Received update for slot {slot.slotName}, but no UI slot is configured for it!");
             }
         }
     }

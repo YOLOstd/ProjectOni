@@ -31,13 +31,13 @@ namespace ProjectOni.UI
             GameEvents.OnEquipmentSlotChanged -= HandleSlotChanged;
         }
 
-        private void HandleSlotChanged(EquipmentSlotDefinition slot, ModularEquipmentData item)
+        private void HandleSlotChanged(EquipmentSlotDefinition slot, EquipmentInstance item)
         {
             foreach (var mapping in slotMappings)
             {
                 if (mapping.definition == slot)
                 {
-                    UpdateIcon(mapping.targetIcon, item != null ? item.icon : null);
+                    UpdateIcon(mapping.targetIcon, item.IsValid ? item.blueprint.icon : null);
                 }
             }
         }

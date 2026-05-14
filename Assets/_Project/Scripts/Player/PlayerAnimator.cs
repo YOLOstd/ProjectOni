@@ -58,7 +58,7 @@ namespace ProjectOni.Player
             {
                 _equipment.activeWeaponVisual.onChangedWithOld += OnWeaponChanged;
                 // Initial update for late joiners or current state
-                UpdateWeaponVisual(null, _equipment.activeWeaponVisual.value);
+                UpdateWeaponVisual(default, _equipment.activeWeaponVisual.value);
             }
         }
 
@@ -255,23 +255,39 @@ namespace ProjectOni.Player
         private void SafeResetTrigger(int hash) { if (_validParameters.Contains(hash)) _anim.ResetTrigger(hash); }
         #endregion
 
-        private void OnWeaponChanged(ModularEquipmentData oldVal, ModularEquipmentData newVal)
+        [SerializeField] private Transform _weaponHoldPoint;
+        private GameObject _spawnedWeaponVisual;
+
+        private void OnWeaponChanged(EquipmentInstance oldVal, EquipmentInstance newVal)
         {
             UpdateWeaponVisual(oldVal, newVal);
         }
 
-        private void UpdateWeaponVisual(ModularEquipmentData oldVal, ModularEquipmentData newVal)
+        private void UpdateWeaponVisual(EquipmentInstance oldVal, EquipmentInstance newVal)
         {
-            if (newVal == null)
+            // Destroy previous visual
+            if (_spawnedWeaponVisual != null)
             {
-                // Handle no weapon visual (e.g. deactivate weapon sprite)
+                Destroy(_spawnedWeaponVisual);
+                _spawnedWeaponVisual = null;
+            }
+
+            // Only spawn if new item is valid and has a prefab
+            if (!newVal.IsValid || newVal.blueprint == null || newVal.blueprint.visualPrefab == null)
+                return;
+
+            if (_weaponHoldPoint == null)
+            {
+                Debug.LogWarning($"[PlayerAnimator] No weapon hold point assigned on {gameObject.name}!");
                 return;
             }
 
-            // TODO: Implement actual weapon visual switching here.
-            // This could be changing a child sprite renderer, updating an animator parameter,
-            // or swapping a mesh.
-            Debug.Log($"[PlayerAnimator] {gameObject.name} visual updated to: {newVal.itemName}");
+            // Spawn and parent
+            _spawnedWeaponVisual = Instantiate(newVal.blueprint.visualPrefab, _weaponHoldPoint);
+            _spawnedWeaponVisual.transform.localPosition = Vector3.zero;
+            _spawnedWeaponVisual.transform.localRotation = Quaternion.identity;
+            
+            Debug.Log($"[PlayerAnimator] Updated weapon visual to: {newVal.blueprint.itemName}");
         }
 
         private static readonly int GroundedKey = Animator.StringToHash("Grounded");

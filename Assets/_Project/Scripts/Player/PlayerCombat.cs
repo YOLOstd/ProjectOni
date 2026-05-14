@@ -30,8 +30,8 @@ namespace ProjectOni.Player
 
         private void PerformAttack()
         {
-            ModularEquipmentData activeWeapon = _equipment.GetActiveWeapon();
-            if (activeWeapon == null) return;
+            EquipmentInstance activeWeapon = _equipment.GetActiveWeapon();
+            if (!activeWeapon.IsValid) return;
     
             // Get the weapon trait to find the animation trigger
             var weaponTrait = activeWeapon.GetTrait<WeaponTrait>();
@@ -47,7 +47,7 @@ namespace ProjectOni.Player
     
             // Damage logic (simplified - normally triggered via Animation Event or Hitbox control)
             float damage = StatCalculator.CalculateFinalDamage(_stats.BaseDamage, new[] { activeWeapon });
-            Debug.Log($"Attacking with {activeWeapon.itemName} dealing {damage} damage.");
+            Debug.Log($"Attacking with {activeWeapon.blueprint.itemName} dealing {damage} damage.");
         }
     }
 }

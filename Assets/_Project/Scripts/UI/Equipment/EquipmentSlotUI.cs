@@ -27,17 +27,21 @@ namespace ProjectOni.UI
             }
         }
 
-        public void SetItem(ModularEquipmentData item)
+        public void SetItem(EquipmentInstance item)
         {
-            if (item != null && item.icon != null)
+            // Ensure components are initialized even if Awake hasn't run yet
+            if (iconImage == null) iconImage = GetComponentInChildren<Image>();
+            if (iconImage == null) return;
+
+            if (item.IsValid && item.blueprint.icon != null)
             {
-                iconImage.sprite = item.icon;
+                iconImage.sprite = item.blueprint.icon;
                 iconImage.enabled = true;
             }
             else
             {
                 iconImage.sprite = emptySprite;
-                // If there's no empty sprite, hidden the image component to avoid white squares
+                // If there's no empty sprite, hide the image component to avoid white squares
                 iconImage.enabled = emptySprite != null;
             }
         }

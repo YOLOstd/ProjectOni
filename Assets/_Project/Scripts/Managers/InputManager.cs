@@ -46,14 +46,6 @@ namespace ProjectOni.Managers
             _interactAction = _playerInput.actions.FindAction("Interact");
             _toggleMenuAction = _playerInput.actions.FindAction("ToggleMenu");
 
-            if (_toggleMenuAction == null)
-            {
-                Debug.LogWarning("InputManager: Could not find 'ToggleMenu' action in input asset!");
-            }
-            else
-            {
-                Debug.Log("InputManager: Successfully bound 'ToggleMenu' action.");
-            }
         }
 
         private void OnEnable()
@@ -67,7 +59,6 @@ namespace ProjectOni.Managers
             {
                 _toggleMenuAction.performed += OnToggleMenuTriggered;
                 _toggleMenuAction.Enable();
-                Debug.Log($"InputManager: Subscribed to {_toggleMenuAction.name}.performed and enabled action.");
             }
         }
 
@@ -115,7 +106,6 @@ namespace ProjectOni.Managers
         private void OnInteractTriggered(InputAction.CallbackContext obj) => InteractPressed?.Invoke();
         private void OnToggleMenuTriggered(InputAction.CallbackContext obj) 
         {
-            Debug.Log("InputManager: ToggleMenu action triggered!");
             MenuTogglePressed?.Invoke();
         }
 

@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace ProjectOni.Data
 {
-    [Serializable]
-    public class ActiveSkillTrait : IEquipmentTrait
+    [CreateAssetMenu(fileName = "New Active Skill Trait", menuName = "Project Oni/Traits/Active Skill")]
+    public class ActiveSkillTrait : EquipmentTraitSO
     {
         public string skillName;
         public float cooldownTime;
@@ -17,8 +17,8 @@ namespace ProjectOni.Data
 
     public enum PassiveTrigger { OnHitTaken, OnHitGiven, AlwaysActive, LowHealth }
 
-    [Serializable]
-    public class PassiveSkillTrait : IEquipmentTrait
+    [CreateAssetMenu(fileName = "New Passive Skill Trait", menuName = "Project Oni/Traits/Passive Skill")]
+    public class PassiveSkillTrait : EquipmentTraitSO
     {
         public PassiveTrigger triggerCondition;
         public float activationChance; // e.g., 0.2f for a 20% chance
