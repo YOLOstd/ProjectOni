@@ -10,9 +10,10 @@ namespace ProjectOni.Data
         public float cooldownTime;
         public float manaCost;
         
-        // Usually, you reference a prefab that contains the actual skill logic (like a fireball)
-        // Or a separate ScriptableObject that defines the skill's behavior
-        public GameObject skillPrefab; 
+        public override string GetDescription()
+        {
+            return $"Active: {skillName} | CD: {cooldownTime}s | Mana: {manaCost}";
+        }
     }
 
     public enum PassiveTrigger { OnHitTaken, OnHitGiven, AlwaysActive, LowHealth }
@@ -23,5 +24,11 @@ namespace ProjectOni.Data
         public PassiveTrigger triggerCondition;
         public float activationChance; // e.g., 0.2f for a 20% chance
         public GameObject passiveEffectPrefab; // e.g., an explosion that happens when hit
+
+        public override string GetDescription()
+        {
+            string chanceText = activationChance < 1.0f ? $" ({activationChance * 100}%)" : "";
+            return $"Passive: {triggerCondition}{chanceText}";
+        }
     }
 }

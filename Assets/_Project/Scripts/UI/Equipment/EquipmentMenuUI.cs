@@ -90,7 +90,6 @@ namespace ProjectOni.UI
             {
                 if (slotUI.SlotDefinition == slot)
                 {
-                    Debug.Log($"[EquipmentMenuUI] Updating UI slot {slot.slotName} with {item.blueprint?.itemName ?? "Empty"}");
                     slotUI.SetItem(item);
                     foundSlot = true;
                 }

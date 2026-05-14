@@ -9,5 +9,7 @@ namespace ProjectOni.Data
     public abstract class EquipmentTraitSO : ScriptableObject, IEquipmentTrait 
     {
         public string traitName;
+
+        public abstract string GetDescription();
     }
 }

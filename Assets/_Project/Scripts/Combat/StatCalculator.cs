@@ -21,40 +21,46 @@ namespace ProjectOni.Combat
 
         public static float CalculateStat(float baseValue, StatType type, IEnumerable<EquipmentInstance> equipmentList)
         {
-            float total = baseValue;
+            float additiveTotal = 0;
+            float multiplierTotal = 0;
+
             if (equipmentList != null)
             {
                 foreach (var item in equipmentList)
                 {
                     if (!item.IsValid) continue;
 
-                    // Add base stats from blueprint
+                    // 1. Process Blueprint Base Stats
                     foreach (var stat in item.blueprint.baseStats)
                     {
-                        if (stat.type == type) total += stat.value;
+                        if (stat.type == type)
+                        {
+                            if (stat.isMultiplier) multiplierTotal += stat.value;
+                            else additiveTotal += stat.value;
+                        }
                     }
 
-                    // Add traits
+                    // 2. Process Traits
                     foreach (var trait in item.GetTraits())
                     {
                         if (trait is StatModifierTrait statModifier)
                         {
                             foreach (var mod in statModifier.modifiers)
                             {
-                                if (mod.type == type && !mod.isMultiplier)
+                                if (mod.type == type)
                                 {
-                                    total += mod.value;
+                                    if (mod.isMultiplier) multiplierTotal += mod.value;
+                                    else additiveTotal += mod.value;
                                 }
                             }
                         }
                     }
                 }
-
-                // Apply multipliers in a second pass if needed, 
-                // but for now we'll stick to additive for simplicity 
-                // unless we want to implement a specific order of operations.
             }
-            return total;
+
+            // Final Formula: (Base + Flat Additions) * (1 + Sum of Multipliers)
+            // Multipliers are treated as percentage additions (e.g. 0.1 = +10%)
+            return (baseValue + additiveTotal) * (1 + multiplierTotal);
         }
     }
 }

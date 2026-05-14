@@ -4,5 +4,8 @@ namespace ProjectOni.Data
     /// Base interface for all modular equipment traits.
     /// Allows for polymorphic storage in ModularEquipmentData.
     /// </summary>
-    public interface IEquipmentTrait { }
+    public interface IEquipmentTrait 
+    {
+        string GetDescription();
+    }
 }

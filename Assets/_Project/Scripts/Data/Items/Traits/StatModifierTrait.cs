@@ -30,5 +30,18 @@ namespace ProjectOni.Data
             }
             return total;
         }
+        public override string GetDescription()
+        {
+            if (modifiers == null || modifiers.Count == 0) return "No modifiers.";
+            
+            var lines = new System.Collections.Generic.List<string>();
+            foreach (var mod in modifiers)
+            {
+                string sign = mod.value >= 0 ? "+" : "";
+                string type = mod.isMultiplier ? "%" : "";
+                lines.Add($"{sign}{mod.value}{type} {mod.type}");
+            }
+            return string.Join("\n", lines);
+        }
     }
 }

@@ -7,5 +7,6 @@ namespace ProjectOni.Data
     {
         public StatType type;
         public float value;
+        public bool isMultiplier;
     }
 }

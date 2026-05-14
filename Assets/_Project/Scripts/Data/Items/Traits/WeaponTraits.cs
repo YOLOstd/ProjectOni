@@ -9,7 +9,10 @@ namespace ProjectOni.Data
         public float attackSpeed; // e.g., 1.5 swings per second
         public float knockbackForce;
         public string comboAnimationTrigger; // Tells the animator which attack tree to use
-        public string hitSoundEffect;
+        public override string GetDescription()
+        {
+            return $"AS: {attackSpeed} | KB: {knockbackForce}";
+        }
     }
 
     [CreateAssetMenu(fileName = "New Melee Weapon Trait", menuName = "Project Oni/Traits/Melee Weapon")]
@@ -19,6 +22,11 @@ namespace ProjectOni.Data
         public float swingRadius;
         public int comboHitsAllowed;
         public GameObject hitSparkPrefab;
+
+        public override string GetDescription()
+        {
+            return base.GetDescription() + $"\nRange: {swingRadius} | Combo: {comboHitsAllowed}";
+        }
     }
 
     [CreateAssetMenu(fileName = "New Ranged Weapon Trait", menuName = "Project Oni/Traits/Ranged Weapon")]
@@ -29,5 +37,10 @@ namespace ProjectOni.Data
         public float maxDrawTime;
         public float projectileSpeed;
         public int ammoCost;
+
+        public override string GetDescription()
+        {
+            return base.GetDescription() + $"\nProj Speed: {projectileSpeed} | Ammo: {ammoCost}";
+        }
     }
 }
