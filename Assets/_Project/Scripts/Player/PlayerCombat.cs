@@ -1,53 +1,56 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using ProjectOni.Data;
 using ProjectOni.Combat;
 
 namespace ProjectOni.Player
 {
     public class PlayerCombat : MonoBehaviour
     {
-        [Header("Attacking Settings")]
-        private Animator _animator;
-        private EquipmentManager _equipment;
-        private PlayerStats _stats;
+        private CombatController _combatController;
+        private PlayerController _playerController;
 
         private void Awake()
         {
-            _animator = GetComponent<Animator>();
-            _equipment = GetComponent<EquipmentManager>();
-            _stats = GetComponent<PlayerStats>();
+            _combatController = GetComponent<CombatController>();
+            _playerController = GetComponent<PlayerController>();
         }
 
-        // Action from PlayerInput
         public void OnAttack(InputValue value)
         {
             if (value.isPressed)
             {
-                PerformAttack();
+                _combatController.TriggerAction(ActionSlot.Primary, GetAttackDirection());
             }
         }
 
-        private void PerformAttack()
+        public void OnSecondaryAttack(InputValue value)
         {
-            EquipmentInstance activeWeapon = _equipment.GetActiveWeapon();
-            if (!activeWeapon.IsValid) return;
-    
-            // Get the weapon trait to find the animation trigger
-            var weaponTrait = activeWeapon.GetTrait<WeaponTrait>();
-            string animName = (weaponTrait != null && !string.IsNullOrEmpty(weaponTrait.comboAnimationTrigger)) 
-                ? weaponTrait.comboAnimationTrigger 
-                : "Attack";
-
-            // Trigger animation
-            if (_animator != null)
+            if (value.isPressed)
             {
-                _animator.Play(animName);
+                _combatController.TriggerAction(ActionSlot.Secondary, GetAttackDirection());
             }
-    
-            // Damage logic (simplified - normally triggered via Animation Event or Hitbox control)
-            float damage = StatCalculator.CalculateFinalDamage(_stats.BaseDamage, new[] { activeWeapon });
-            Debug.Log($"Attacking with {activeWeapon.blueprint.itemName} dealing {damage} damage.");
+        }
+
+        public void OnSpellQ(InputValue value)
+        {
+            if (value.isPressed)
+            {
+                _combatController.TriggerAction(ActionSlot.Spell1, GetAttackDirection());
+            }
+        }
+
+        public void OnSpellE(InputValue value)
+        {
+            if (value.isPressed)
+            {
+                _combatController.TriggerAction(ActionSlot.Spell2, GetAttackDirection());
+            }
+        }
+
+        private Vector2 GetAttackDirection()
+        {
+            // Simple horizontal direction based on player facing
+            return new Vector2(_playerController.FacingDir, 0);
         }
     }
 }

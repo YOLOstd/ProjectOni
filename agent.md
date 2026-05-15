@@ -18,6 +18,10 @@ This project is a 2D hack'n'slash COOP platformer built on Unity using PurrNet f
 - **State Synchronization**: Use `SyncVar`, `SyncDictionary`, and `Buffered RPCs` (bufferLast: true) to ensure state consistency and late-join support.
 - **Visuals**: Only the most essential visual indicators (like active weapons) should be synced to observers to minimize bandwidth.
 
+## Combat Design
+- **Weapon Attacks**: Melee and ranged attacks come from weapons equipped in weapon slots.
+- **Spells**: Spells come from rings equipped in ring slots. They are a separate system from weapon attacks.
+
 ## AI Agent Instructions
 - Follow Unity best practices for C# scripting and the New Input System.
 - Maintain project structure and naming conventions.

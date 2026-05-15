@@ -9,6 +9,7 @@ namespace ProjectOni.Data
         public float attackSpeed; // e.g., 1.5 swings per second
         public float knockbackForce;
         public string comboAnimationTrigger; // Tells the animator which attack tree to use
+        public ProjectOni.Combat.Data.AttackDataSO attackData;
         public override string GetDescription()
         {
             return $"AS: {attackSpeed} | KB: {knockbackForce}";

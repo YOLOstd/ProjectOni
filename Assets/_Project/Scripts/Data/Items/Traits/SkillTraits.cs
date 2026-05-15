@@ -31,4 +31,15 @@ namespace ProjectOni.Data
             return $"Passive: {triggerCondition}{chanceText}";
         }
     }
+
+    [CreateAssetMenu(fileName = "New Spell Trait", menuName = "Project Oni/Traits/Spell Trait")]
+    public class SpellTrait : EquipmentTraitSO
+    {
+        public ProjectOni.Combat.Data.SpellAttackDataSO spellData;
+
+        public override string GetDescription()
+        {
+            return spellData != null ? $"Spell: {spellData.attackName}" : "Spell: None";
+        }
+    }
 }

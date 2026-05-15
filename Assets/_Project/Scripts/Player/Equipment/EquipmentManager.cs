@@ -53,6 +53,13 @@ namespace ProjectOni.Player
             {
                 // Ensure observers see the current weapon on spawn
                 OnActiveWeaponVisualChanged(default, activeWeaponVisual.value);
+                
+                // For non-owner proxies, we still want to fire the slot changed event
+                // so that nameplates or other systems can react if they want, 
+                // but primarily for the visual update.
+                // However, since activeWeaponVisual handles the visual, 
+                // we don't necessarily need to NotifyAllSlots for proxies unless 
+                // there's proxy-specific UI.
             }
         }
 
@@ -70,7 +77,7 @@ namespace ProjectOni.Player
         {
             foreach (var slot in currentEquipment.Keys)
             {
-                GameEvents.TriggerEquipmentSlotChanged(slot, currentEquipment[slot]);
+                GameEvents.TriggerEquipmentSlotChanged(this, slot, currentEquipment[slot]);
             }
         }
 
@@ -80,7 +87,7 @@ namespace ProjectOni.Player
         /// </summary>
         public EquipmentInstance Equip(EquipmentInstance item, EquipmentSlotDefinition slot)
         {
-            if (!isOwner) return default;
+            if (!isOwner && !isServer) return default;
             if (slot == null) return default;
 
             // Safety check: Is this even a valid slot on this manager?
@@ -104,10 +111,19 @@ namespace ProjectOni.Player
             EquipmentInstance oldItem = currentEquipment[slot];
             currentEquipment[slot] = item;
 
-            // Notify systems
-                        Debug.Log($"[EquipmentManager] Equipping {item.blueprint.itemName} to slot: {slot.slotName}");
-            GameEvents.TriggerEquipmentSlotChanged(slot, item);
+            // Notify local systems
+            Debug.Log($"[EquipmentManager] Equipping {item.blueprint.itemName} to slot: {slot.slotName} (isOwner: {isOwner}, isServer: {isServer})");
+            GameEvents.TriggerEquipmentSlotChanged(this, slot, item);
 
+            // If we are on the server, notify the clients (especially the owner)
+            if (isServer)
+            {
+                int slotIndex = allGameSlots.IndexOf(slot);
+                if (slotIndex >= 0)
+                {
+                    RpcNotifySlotChanged(slotIndex, item);
+                }
+            }
 
             // If we updated a weapon slot that is currently active, refresh visuals/logic
             if ((slot == primaryWeaponSlot && isUsingPrimary.value) || (slot == secondaryWeaponSlot && !isUsingPrimary.value))
@@ -116,6 +132,25 @@ namespace ProjectOni.Player
             }
 
             return oldItem;
+        }
+
+        [ObserversRpc]
+        private void RpcNotifySlotChanged(int slotIndex, EquipmentInstance item)
+        {
+            // The server already processed this, skip to avoid double processing/events
+            if (isServer) return;
+
+            if (slotIndex < 0 || slotIndex >= allGameSlots.Count) return;
+            var slot = allGameSlots[slotIndex];
+
+            // Update local state
+            if (!currentEquipment.ContainsKey(slot))
+                currentEquipment[slot] = item;
+            else
+                currentEquipment[slot] = item;
+
+            // Fire local event for UI
+            GameEvents.TriggerEquipmentSlotChanged(this, slot, item);
         }
 
         /// <summary>
@@ -128,7 +163,7 @@ namespace ProjectOni.Player
             // 1. Try to find an empty compatible slot
             foreach (var slot in allGameSlots)
             {
-                if (isOwner && IsSlotEmpty(slot) && slot.acceptedCategories.Contains(item.blueprint.category))
+                if ((isOwner || isServer) && IsSlotEmpty(slot) && slot.acceptedCategories.Contains(item.blueprint.category))
                 {
                     Equip(item, slot);
                     return true;
@@ -174,6 +209,12 @@ namespace ProjectOni.Player
         {
             if (slot == null) return false;
             return currentEquipment.ContainsKey(slot) && !currentEquipment[slot].IsValid;
+        }
+
+        public EquipmentInstance GetItemInSlot(EquipmentSlotDefinition slot)
+        {
+            if (slot == null) return default;
+            return currentEquipment.TryGetValue(slot, out var item) ? item : default;
         }
     }
 }

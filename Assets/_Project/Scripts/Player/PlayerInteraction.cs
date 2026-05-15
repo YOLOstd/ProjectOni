@@ -81,7 +81,30 @@ namespace ProjectOni.Player
         {
             if (_nearestInteractable != null)
             {
-                _nearestInteractable.Interact();
+                // If we are the server (host), we can interact immediately
+                if (isServer)
+                {
+                    _nearestInteractable.Interact(gameObject);
+                }
+                else
+                {
+                    // Otherwise, request the server to interact for us
+                    // We pass the GameObject of the interactable
+                    var interactableComp = _nearestInteractable as Component;
+                    if (interactableComp != null)
+                    {
+                        RequestInteractServerRpc(interactableComp.gameObject);
+                    }
+                }
+            }
+        }
+
+        [ServerRpc]
+        private void RequestInteractServerRpc(GameObject interactableObject)
+        {
+            if (interactableObject != null && interactableObject.TryGetComponent(out IInteractable interactable))
+            {
+                interactable.Interact(gameObject);
             }
         }
 

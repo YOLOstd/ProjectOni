@@ -83,8 +83,10 @@ namespace ProjectOni.UI
             
         }
 
-        private void HandleSlotChanged(EquipmentSlotDefinition slot, EquipmentInstance item)
+        private void HandleSlotChanged(EquipmentManager manager, EquipmentSlotDefinition slot, EquipmentInstance item)
         {
+            if (!manager.isOwner) return;
+
             bool foundSlot = false;
             foreach (var slotUI in _slots)
             {
