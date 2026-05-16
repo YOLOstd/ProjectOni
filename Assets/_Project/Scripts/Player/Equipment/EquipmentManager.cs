@@ -216,5 +216,8 @@ namespace ProjectOni.Player
             if (slot == null) return default;
             return currentEquipment.TryGetValue(slot, out var item) ? item : default;
         }
+
+        /// <summary>Returns all currently equipped items (for stat recalculation).</summary>
+        public IEnumerable<EquipmentInstance> GetAllEquipped() => currentEquipment.Values;
     }
 }
