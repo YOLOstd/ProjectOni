@@ -21,6 +21,10 @@ namespace ProjectOni.Combat
         public float damage;
         public Vector2 spawnOffset;
         public GameObject hitVFXPrefab;
+        public float lifetime;
+        
+        public float hitboxStartTime;
+        public float hitboxDuration;
 
         public static VisualRequest Default => new VisualRequest();
     }
@@ -62,6 +66,7 @@ namespace ProjectOni.Combat
         public LayerMask TargetLayer;
         public Vector2 Direction;
         public Vector3 Position;
+        public int SkillLevel;
     }
 
     public interface IAttackBehavior

@@ -16,6 +16,10 @@ namespace ProjectOni.Managers
         private InputAction _jumpAction;
         private InputAction _dodgeAction;
         private InputAction _interactAction;
+        private InputAction _attackAction;
+        private InputAction _secondaryAttackAction;
+        private InputAction _spellQAction;
+        private InputAction _spellEAction;
 
         // UI / Menu Actions
         private InputAction _playerToggleMenuAction;
@@ -29,6 +33,10 @@ namespace ProjectOni.Managers
         public event Action DodgePressed;
         public event Action InteractPressed;
         public event Action MenuTogglePressed;
+        public event Action AttackPressed;
+        public event Action SecondaryAttackPressed;
+        public event Action SpellQPressed;
+        public event Action SpellEPressed;
 
         private void Awake()
         {
@@ -46,6 +54,10 @@ namespace ProjectOni.Managers
             _jumpAction = _playerInput.actions["Jump"];
             _dodgeAction = _playerInput.actions["Dodge"];
             _interactAction = _playerInput.actions.FindAction("Interact");
+            _attackAction = _playerInput.actions.FindAction("Attack");
+            _secondaryAttackAction = _playerInput.actions.FindAction("SecondaryAttack");
+            _spellQAction = _playerInput.actions.FindAction("SpellQ");
+            _spellEAction = _playerInput.actions.FindAction("SpellE");
             
             // Explicitly cache the ToggleMenu action from BOTH maps
             var playerMap = _playerInput.actions.FindActionMap("Player");
@@ -61,6 +73,10 @@ namespace ProjectOni.Managers
             if (_jumpAction != null) _jumpAction.canceled += OnJumpCanceled;
             if (_dodgeAction != null) _dodgeAction.performed += OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed += OnInteractTriggered;
+            if (_attackAction != null) _attackAction.performed += OnAttackTriggered;
+            if (_secondaryAttackAction != null) _secondaryAttackAction.performed += OnSecondaryAttackTriggered;
+            if (_spellQAction != null) _spellQAction.performed += OnSpellQTriggered;
+            if (_spellEAction != null) _spellEAction.performed += OnSpellETriggered;
             
             // Subscribe safely. DO NOT call .Enable() manually here!
             if (_playerToggleMenuAction != null)
@@ -83,6 +99,10 @@ namespace ProjectOni.Managers
             }
             if (_dodgeAction != null) _dodgeAction.performed -= OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed -= OnInteractTriggered;
+            if (_attackAction != null) _attackAction.performed -= OnAttackTriggered;
+            if (_secondaryAttackAction != null) _secondaryAttackAction.performed -= OnSecondaryAttackTriggered;
+            if (_spellQAction != null) _spellQAction.performed -= OnSpellQTriggered;
+            if (_spellEAction != null) _spellEAction.performed -= OnSpellETriggered;
             
             if (_playerToggleMenuAction != null)
                 _playerToggleMenuAction.performed -= OnToggleMenuTriggered;
@@ -105,6 +125,10 @@ namespace ProjectOni.Managers
         private void OnJumpCanceled(InputAction.CallbackContext obj) => JumpReleased?.Invoke();
         private void OnDodgeTriggered(InputAction.CallbackContext obj) => DodgePressed?.Invoke();
         private void OnInteractTriggered(InputAction.CallbackContext obj) => InteractPressed?.Invoke();
+        private void OnAttackTriggered(InputAction.CallbackContext obj) => AttackPressed?.Invoke();
+        private void OnSecondaryAttackTriggered(InputAction.CallbackContext obj) => SecondaryAttackPressed?.Invoke();
+        private void OnSpellQTriggered(InputAction.CallbackContext obj) => SpellQPressed?.Invoke();
+        private void OnSpellETriggered(InputAction.CallbackContext obj) => SpellEPressed?.Invoke();
         
         private void OnToggleMenuTriggered(InputAction.CallbackContext obj) 
         {

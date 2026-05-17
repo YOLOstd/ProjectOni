@@ -6,6 +6,7 @@ using ProjectOni.Combat.Data;
 using ProjectOni.Player;
 using ProjectOni.Data;
 using ProjectOni.Combat;
+using ProjectOni.Core;
 
 namespace ProjectOni.Combat
 {
@@ -25,6 +26,7 @@ namespace ProjectOni.Combat
         [Header("References")]
         [SerializeField] private CombatAnimator _combatAnimator;
         [SerializeField] private EquipmentManager _equipmentManager;
+        [SerializeField] private StatController _statController;
 
         private Dictionary<ActionSlot, float> _cooldowns = new();
 
@@ -33,6 +35,7 @@ namespace ProjectOni.Combat
             base.OnSpawned();
             if (_equipmentManager == null) _equipmentManager = GetComponent<EquipmentManager>();
             if (_combatAnimator == null) _combatAnimator = GetComponentInChildren<CombatAnimator>();
+            if (_statController == null) _statController = GetComponent<StatController>();
         }
 
         public void TriggerAction(ActionSlot slot, Vector2 direction)
@@ -48,12 +51,24 @@ namespace ProjectOni.Combat
             // Try to find any attack behavior (Weapon or Spell)
             IAttackBehavior behavior = null;
             float cooldown = 0.5f;
+            int skillLevel = 1;
 
             var weapon = item.GetTrait<WeaponTrait>();
             if (weapon != null)
             {
                 behavior = weapon.attackData;
-                cooldown = weapon.attackData != null ? weapon.attackData.attackCooldown : 0.5f;
+                skillLevel = weapon.skillLevel;
+                if (weapon.attackData != null)
+                {
+                    float baseCooldown = weapon.attackData.attackCooldown;
+                    float attackSpeedMultiplier = 1f;
+                    if (_statController != null)
+                    {
+                        attackSpeedMultiplier = _statController.Get(StatType.AttackSpeed);
+                        if (attackSpeedMultiplier <= 0f) attackSpeedMultiplier = 1f;
+                    }
+                    cooldown = baseCooldown / attackSpeedMultiplier;
+                }
             }
             else
             {
@@ -61,16 +76,20 @@ namespace ProjectOni.Combat
                 if (spell != null)
                 {
                     behavior = spell.spellData;
-                    cooldown = spell.spellData != null ? spell.spellData.attackCooldown : 0.5f;
+                    skillLevel = spell.skillLevel;
+                    if (spell.spellData != null)
+                    {
+                        cooldown = spell.spellData.attackCooldown;
+                    }
                 }
             }
 
             if (behavior == null) return;
 
-            ExecuteAction(slot, behavior, cooldown, direction);
+            ExecuteAction(slot, behavior, cooldown, direction, skillLevel);
         }
 
-        private void ExecuteAction(ActionSlot slot, IAttackBehavior behavior, float cooldown, Vector2 direction)
+        private void ExecuteAction(ActionSlot slot, IAttackBehavior behavior, float cooldown, Vector2 direction, int skillLevel)
         {
             if (_cooldowns.TryGetValue(slot, out float lastTime) && Time.time < lastTime + cooldown)
                 return;
@@ -83,14 +102,16 @@ namespace ProjectOni.Combat
                 Caster = gameObject,
                 TargetLayer = _targetLayer,
                 Direction = direction,
-                Position = transform.position
+                Position = transform.position,
+                SkillLevel = skillLevel
             });
+            Debug.Log($"[CombatController] Action executed: {slot} on {gameObject.name}");
 
             // Trigger Visuals for everyone
             RpcPlayVisuals(request, direction);
         }
 
-        [ObserversRpc]
+        [ObserversRpc(runLocally: true, requireServer: false)]
         private void RpcPlayVisuals(VisualRequest request, Vector2 direction)
         {
             if (_combatAnimator != null)

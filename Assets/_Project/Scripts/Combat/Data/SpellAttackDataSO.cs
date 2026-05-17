@@ -21,7 +21,7 @@ namespace ProjectOni.Combat.Data
                 sfx = castSFX,
                 projectilePrefab = spellProjectilePrefab,
                 projectileSpeed = spellSpeed,
-                damage = baseDamage,
+                damage = CalculateDamage(ctx.SkillLevel),
                 spawnOffset = spellSpawnOffset,
                 hitVFXPrefab = hitVFXPrefab
             };

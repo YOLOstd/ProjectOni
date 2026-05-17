@@ -13,6 +13,14 @@ namespace ProjectOni.Combat.Data
         public float comboWindow = 1.0f;
         public string[] comboAnimationTriggers;
 
+        [Header("Slash Prefab Settings")]
+        public GameObject slashPrefab;
+        public float slashDuration = 0.2f;
+
+        [Header("Hitbox Timing")]
+        public float hitboxStartTime = 0.05f;
+        public float hitboxDuration = 0.1f;
+
         private Dictionary<GameObject, ComboState> _states = new();
 
         public override VisualRequest Execute(AttackContext ctx)
@@ -26,23 +34,18 @@ namespace ProjectOni.Combat.Data
 
             state.Advance(comboWindow);
 
-            Vector3 origin = ctx.Position + (Vector3)(ctx.Direction * hitOffset.x) + (Vector3.up * hitOffset.y);
-            Collider2D[] hits = Physics2D.OverlapCircleAll(origin, swingRadius, ctx.TargetLayer);
-
-            foreach (var hit in hits)
-            {
-                if (hit.TryGetComponent(out IDamageable damageable))
-                {
-                    damageable.TakeDamage(baseDamage);
-                }
-            }
-
             return new VisualRequest
             {
                 animationTrigger = comboAnimationTriggers.Length > 0 ? comboAnimationTriggers[state.Index] : animationTrigger,
                 sfx = castSFX,
-                damage = baseDamage,
-                hitVFXPrefab = hitVFXPrefab
+                projectilePrefab = slashPrefab,
+                projectileSpeed = 0f,
+                damage = CalculateDamage(ctx.SkillLevel),
+                spawnOffset = hitOffset,
+                hitVFXPrefab = hitVFXPrefab,
+                lifetime = slashDuration,
+                hitboxStartTime = hitboxStartTime,
+                hitboxDuration = hitboxDuration
             };
         }
     }

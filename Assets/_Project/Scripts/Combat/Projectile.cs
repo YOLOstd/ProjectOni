@@ -3,7 +3,7 @@ using ProjectOni.Core;
 
 namespace ProjectOni.Combat
 {
-    public class Projectile : MonoBehaviour
+    public class Projectile : MonoBehaviour, IPooledObject
     {
         private Vector2 _direction;
         private float _speed;
@@ -34,7 +34,30 @@ namespace ProjectOni.Combat
             transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
 
             // Auto-despawn after 5 seconds
-            Destroy(gameObject, 5f);
+            if (TryGetComponent<PooledVFX>(out var pooled))
+            {
+                pooled.ReleaseAfter(5f);
+            }
+            else
+            {
+                Destroy(gameObject, 5f);
+            }
+        }
+
+        public void ResetState()
+        {
+            if (_rb == null) _rb = GetComponent<Rigidbody2D>();
+            if (_rb != null)
+            {
+                _rb.linearVelocity = Vector2.zero;
+                _rb.angularVelocity = 0f;
+            }
+            _direction = Vector2.zero;
+            _speed = 0f;
+            _damage = 0f;
+            _isOwner = false;
+            _hitMask = 0;
+            _hitVFX = null;
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -49,10 +72,24 @@ namespace ProjectOni.Combat
 
                 if (_hitVFX != null)
                 {
-                    Instantiate(_hitVFX, transform.position, Quaternion.identity);
+                    if (VFXPoolManager.Instance != null)
+                    {
+                        VFXPoolManager.Instance.Spawn(_hitVFX, transform.position, Quaternion.identity);
+                    }
+                    else
+                    {
+                        Instantiate(_hitVFX, transform.position, Quaternion.identity);
+                    }
                 }
 
-                Destroy(gameObject);
+                if (TryGetComponent<PooledVFX>(out var pooled))
+                {
+                    pooled.Release();
+                }
+                else
+                {
+                    Destroy(gameObject);
+                }
             }
         }
     }

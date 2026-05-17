@@ -14,7 +14,7 @@ namespace ProjectOni.Core
     public static class GameEvents
     {
         // Player events
-        public static Action<EquipmentInstance> OnWeaponSwapped;
+        public static Action<EquipmentManager, EquipmentInstance> OnWeaponSwapped;
         public static Action<EquipmentManager, EquipmentSlotDefinition, EquipmentInstance> OnEquipmentSlotChanged;
 
         /// <summary>Fired after StatController finishes a full recalculation.</summary>
@@ -24,7 +24,7 @@ namespace ProjectOni.Core
         public static Action OnBossDefeated;
 
         // Helpers
-        public static void TriggerWeaponSwapped(EquipmentInstance activeWeapon) => OnWeaponSwapped?.Invoke(activeWeapon);
+        public static void TriggerWeaponSwapped(EquipmentManager manager, EquipmentInstance activeWeapon) => OnWeaponSwapped?.Invoke(manager, activeWeapon);
         public static void TriggerEquipmentSlotChanged(EquipmentManager manager, EquipmentSlotDefinition slot, EquipmentInstance item) => OnEquipmentSlotChanged?.Invoke(manager, slot, item);
         public static void TriggerStatsRecalculated(StatController stats) => OnStatsRecalculated?.Invoke(stats);
         public static void TriggerBossDefeated() => OnBossDefeated?.Invoke();

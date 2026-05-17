@@ -16,6 +16,8 @@ namespace ProjectOni.Player
         [Tooltip("Define all physical equipment slots for this character here.")]
         [SerializeField] private List<EquipmentSlotDefinition> allGameSlots; 
         
+        public IReadOnlyList<EquipmentSlotDefinition> AllGameSlots => allGameSlots;
+        
         [Header("Weapon Swapping Settings")]
         [SerializeField] private EquipmentSlotDefinition primaryWeaponSlot;
         [SerializeField] private EquipmentSlotDefinition secondaryWeaponSlot;
@@ -70,7 +72,7 @@ namespace ProjectOni.Player
 
         private void OnActiveWeaponVisualChanged(EquipmentInstance oldVal, EquipmentInstance newVal)
         {
-            GameEvents.TriggerWeaponSwapped(newVal);
+            GameEvents.TriggerWeaponSwapped(this, newVal);
         }
 
         private void NotifyAllSlots()

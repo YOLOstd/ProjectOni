@@ -35,11 +35,17 @@ namespace ProjectOni.Data
     [CreateAssetMenu(fileName = "New Spell Trait", menuName = "Project Oni/Traits/Spell Trait")]
     public class SpellTrait : EquipmentTraitSO
     {
+        [Header("Spell Skill Conduit")]
+        public int skillLevel = 1;
         public ProjectOni.Combat.Data.SpellAttackDataSO spellData;
 
         public override string GetDescription()
         {
-            return spellData != null ? $"Spell: {spellData.attackName}" : "Spell: None";
+            if (spellData == null) return "Spell: None";
+            float currentDmg = spellData.CalculateDamage(skillLevel);
+            return $"{spellData.attackName} (Lvl {skillLevel})\n" +
+                   $"Dmg: {currentDmg} (Base: {spellData.baseDamage} +{spellData.damageGrowthPerLevel}/lvl)\n" +
+                   $"Mana: {spellData.manaCost} | CD: {spellData.attackCooldown}s";
         }
     }
 }

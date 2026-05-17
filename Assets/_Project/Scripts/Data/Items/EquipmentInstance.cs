@@ -22,7 +22,7 @@ namespace ProjectOni.Data
 
         public List<IEquipmentTrait> GetTraits()
         {
-            if (_cachedTraits == null && blueprint != null && blueprint.traitLootTable != null)
+            if (_cachedTraits == null && blueprint != null)
             {
                 ReconstructTraits();
             }
@@ -31,23 +31,26 @@ namespace ProjectOni.Data
 
         public void ReconstructTraits()
         {
-            if (blueprint == null || blueprint.traitLootTable == null)
+            _cachedTraits = new List<IEquipmentTrait>();
+            if (blueprint == null) return;
+
+            // 1. If this is a weapon blueprint, inject its dedicated weapon trait first
+            if (blueprint is WeaponBlueprint weaponBlueprint && weaponBlueprint.weaponTrait != null)
             {
-                _cachedTraits = new List<IEquipmentTrait>();
-                return;
+                _cachedTraits.Add(weaponBlueprint.weaponTrait);
             }
 
-            var random = new System.Random(seed);
-            _cachedTraits = new List<IEquipmentTrait>();
-
-            // Roll up to 5 traits (or based on some logic)
-            // For now, let's say 5 traits as per the user's request
-            for (int i = 0; i < 5; i++)
+            // 2. Roll random traits from the loot table if it is defined
+            if (blueprint.traitLootTable != null)
             {
-                var trait = blueprint.traitLootTable.GetRandomTrait(random);
-                if (trait != null)
+                var random = new System.Random(seed);
+                for (int i = 0; i < 5; i++)
                 {
-                    _cachedTraits.Add(trait);
+                    var trait = blueprint.traitLootTable.GetRandomTrait(random);
+                    if (trait != null)
+                    {
+                        _cachedTraits.Add(trait);
+                    }
                 }
             }
         }

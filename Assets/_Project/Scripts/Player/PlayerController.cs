@@ -83,8 +83,9 @@ namespace ProjectOni.Player
                 var entityState = GetComponentInChildren<EntityState>();
                 var health      = GetComponentInChildren<HealthComponent>();
                 var stats       = GetComponentInChildren<StatController>();
+                var equipment   = GetComponentInChildren<EquipmentManager>();
 
-                Debug.Log($"[PlayerController] Resolved components: EntityState={entityState != null}, HealthComponent={health != null}, StatController={stats != null}");
+                Debug.Log($"[PlayerController] Resolved components: EntityState={entityState != null}, HealthComponent={health != null}, StatController={stats != null}, EquipmentManager={equipment != null}");
 
                 if (stats != null)
                 {
@@ -99,7 +100,7 @@ namespace ProjectOni.Player
                 if (HUDManager.Instance != null)
                 {
                     Debug.Log("[PlayerController] Binding HUD to local player components.");
-                    HUDManager.Instance.BindLocalPlayer(health, stats);
+                    HUDManager.Instance.BindLocalPlayer(health, stats, equipment);
                 }
                 else
                 {
