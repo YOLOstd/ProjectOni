@@ -20,6 +20,7 @@ namespace ProjectOni.UI
 
         public void BindLocalPlayer(HealthComponent health, StatController stats)
         {
+            Debug.Log($"[HUDManager] BindLocalPlayer. healthUI is null? {healthUI == null}, charStatMenu is null? {charStatMenu == null}");
             if (healthUI != null) healthUI.Bind(health);
             if (charStatMenu != null) charStatMenu.Bind(stats);
         }

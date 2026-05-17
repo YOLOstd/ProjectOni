@@ -40,6 +40,7 @@ namespace ProjectOni.UI
         private void OnEnable()
         {
             GameEvents.OnEquipmentSlotChanged += HandleSlotChanged;
+            SubscribeToInput();
         }
 
         private void Start()

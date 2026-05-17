@@ -10,15 +10,18 @@ namespace ProjectOni.Managers
         public static InputManager Instance { get; private set; }
 
         private PlayerInput _playerInput;
+        
+        // Gameplay Actions
         private InputAction _moveAction;
         private InputAction _jumpAction;
         private InputAction _dodgeAction;
-
         private InputAction _interactAction;
-        private InputAction _toggleMenuAction;
+
+        // UI / Menu Actions
+        private InputAction _playerToggleMenuAction;
+        private InputAction _uiToggleMenuAction;
 
         public Vector2 MoveDirection { get; private set; }
-
         public bool IsJumpHeld => _jumpAction != null && _jumpAction.IsPressed();
         
         public event Action JumpPressed;
@@ -42,10 +45,14 @@ namespace ProjectOni.Managers
             _moveAction = _playerInput.actions["Move"];
             _jumpAction = _playerInput.actions["Jump"];
             _dodgeAction = _playerInput.actions["Dodge"];
-
             _interactAction = _playerInput.actions.FindAction("Interact");
-            _toggleMenuAction = _playerInput.actions.FindAction("ToggleMenu");
-
+            
+            // Explicitly cache the ToggleMenu action from BOTH maps
+            var playerMap = _playerInput.actions.FindActionMap("Player");
+            _playerToggleMenuAction = playerMap != null ? playerMap.FindAction("ToggleMenu") : null;
+            
+            var uiMap = _playerInput.actions.FindActionMap("UI");
+            _uiToggleMenuAction = uiMap != null ? uiMap.FindAction("ToggleMenu") : null;
         }
 
         private void OnEnable()
@@ -55,11 +62,16 @@ namespace ProjectOni.Managers
             if (_dodgeAction != null) _dodgeAction.performed += OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed += OnInteractTriggered;
             
-            if (_toggleMenuAction != null)
-            {
-                _toggleMenuAction.performed += OnToggleMenuTriggered;
-                _toggleMenuAction.Enable();
-            }
+            // Subscribe safely. DO NOT call .Enable() manually here!
+            if (_playerToggleMenuAction != null)
+                _playerToggleMenuAction.performed += OnToggleMenuTriggered;
+            else
+                Debug.LogError("InputManager: 'ToggleMenu' missing in 'Player' map!");
+
+            if (_uiToggleMenuAction != null)
+                _uiToggleMenuAction.performed += OnToggleMenuTriggered;
+            else
+                Debug.LogError("InputManager: 'ToggleMenu' missing in 'UI' map!");
         }
 
         private void OnDisable()
@@ -72,8 +84,10 @@ namespace ProjectOni.Managers
             if (_dodgeAction != null) _dodgeAction.performed -= OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed -= OnInteractTriggered;
             
-            if (_toggleMenuAction != null)
-                _toggleMenuAction.performed -= OnToggleMenuTriggered;
+            if (_playerToggleMenuAction != null)
+                _playerToggleMenuAction.performed -= OnToggleMenuTriggered;
+            if (_uiToggleMenuAction != null)
+                _uiToggleMenuAction.performed -= OnToggleMenuTriggered;
         }
 
         private void Start()
@@ -84,26 +98,14 @@ namespace ProjectOni.Managers
         private void Update()
         {
             if (_moveAction == null) return;
-            
             MoveDirection = _moveAction.ReadValue<Vector2>();
-
-
-            if (MoveDirection != Vector2.zero)
-            {
-                // Debug.Log($"InputManager: Moving {MoveDirection}");
-            }
         }
 
-        private void OnJumpTriggered(InputAction.CallbackContext obj) 
-        {
-            JumpPressed?.Invoke();
-        }
+        private void OnJumpTriggered(InputAction.CallbackContext obj) => JumpPressed?.Invoke();
         private void OnJumpCanceled(InputAction.CallbackContext obj) => JumpReleased?.Invoke();
-        private void OnDodgeTriggered(InputAction.CallbackContext obj) 
-        {
-            DodgePressed?.Invoke();
-        }
+        private void OnDodgeTriggered(InputAction.CallbackContext obj) => DodgePressed?.Invoke();
         private void OnInteractTriggered(InputAction.CallbackContext obj) => InteractPressed?.Invoke();
+        
         private void OnToggleMenuTriggered(InputAction.CallbackContext obj) 
         {
             MenuTogglePressed?.Invoke();
@@ -111,13 +113,11 @@ namespace ProjectOni.Managers
 
         public void EnableGameControls() 
         {
-            Debug.Log("InputManager: Switching to 'Player' action map.");
             _playerInput.SwitchCurrentActionMap("Player"); 
         }
 
         public void EnableMenuControls() 
         {
-            Debug.Log("InputManager: Switching to 'UI' action map.");
             _playerInput.SwitchCurrentActionMap("UI");
         }
     }

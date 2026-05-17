@@ -38,12 +38,14 @@ namespace ProjectOni.UI
         /// </summary>
         public void Bind(StatController stats)
         {
+            Debug.Log($"[CharacterStatMenuUI] Bind called. stats is null? {stats == null}");
             _stats = stats;
             SpawnRows();
         }
 
         private void OnEnable()
         {
+            Debug.Log($"[CharacterStatMenuUI] OnEnable");
             GameEvents.OnStatsRecalculated += HandleStatsRecalculated;
             SubscribeToInput();
             
@@ -55,6 +57,11 @@ namespace ProjectOni.UI
         {
             GameEvents.OnStatsRecalculated -= HandleStatsRecalculated;
             UnsubscribeFromInput();
+        }
+
+        private void Start()
+        {
+            SubscribeToInput();
         }
 
         private void SubscribeToInput()
@@ -81,6 +88,11 @@ namespace ProjectOni.UI
             if (_menuPanel != null)
             {
                 _menuPanel.SetActive(!_menuPanel.activeSelf);
+                Debug.Log($"[CharacterStatMenuUI] Menu toggled. Active self: {_menuPanel.activeSelf}");
+            }
+            else
+            {
+                Debug.LogError("[CharacterStatMenuUI] _menuPanel is null! Cannot toggle.");
             }
         }
 
@@ -92,7 +104,12 @@ namespace ProjectOni.UI
 
         private void SpawnRows()
         {
-            if (_rowContainer == null || _rowPrefab == null) return;
+            Debug.Log($"[CharacterStatMenuUI] SpawnRows called. _rowContainer is null? {_rowContainer == null}, _rowPrefab is null? {_rowPrefab == null}");
+            if (_rowContainer == null || _rowPrefab == null)
+            {
+                Debug.LogError("[CharacterStatMenuUI] Cannot spawn rows: container or prefab is null!");
+                return;
+            }
 
             // Clear existing
             foreach (Transform child in _rowContainer)
@@ -101,22 +118,52 @@ namespace ProjectOni.UI
             }
             _rows.Clear();
 
+            if (_displayedStats == null || _displayedStats.Length == 0)
+            {
+                Debug.LogWarning("[CharacterStatMenuUI] _displayedStats is null or empty! Falling back to defaults.");
+                _displayedStats = new[]
+                {
+                    StatType.Health,
+                    StatType.Armor,
+                    StatType.Evasion,
+                    StatType.Strength,
+                    StatType.Dexterity,
+                    StatType.Intelligence
+                };
+            }
+
+            Debug.Log($"[CharacterStatMenuUI] Spawning {_displayedStats.Length} rows...");
+
             // Spawn configured stats
             foreach (var type in _displayedStats)
             {
                 var row = Instantiate(_rowPrefab, _rowContainer);
-                row.Set(type.ToString(), _stats.Get(type));
+                if (row == null)
+                {
+                    Debug.LogError($"[CharacterStatMenuUI] Failed to instantiate row for {type}!");
+                    continue;
+                }
+                int value = _stats != null ? Mathf.RoundToInt(_stats.Get(type)) : 0;
+                Debug.Log($"[CharacterStatMenuUI] Row created for {type} with value {value}");
+                row.Set(type.ToString(), value);
                 _rows[type] = row;
             }
         }
 
         private void RefreshRows()
         {
-            if (_stats == null) return;
+            if (_stats == null)
+            {
+                Debug.LogWarning("[CharacterStatMenuUI] RefreshRows: _stats is null!");
+                return;
+            }
 
+            Debug.Log("[CharacterStatMenuUI] RefreshRows called.");
             foreach (var kvp in _rows)
             {
-                kvp.Value.Set(kvp.Key.ToString(), _stats.Get(kvp.Key));
+                int val = Mathf.RoundToInt(_stats.Get(kvp.Key));
+                Debug.Log($"[CharacterStatMenuUI] Refreshing {kvp.Key} = {val}");
+                kvp.Value.Set(kvp.Key.ToString(), val);
             }
         }
     }

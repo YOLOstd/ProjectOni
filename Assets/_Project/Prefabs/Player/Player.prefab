@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 1098528546763593062}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.0000014305115, y: 0.37700006, z: -10}
+  m_LocalPosition: {x: -0.0000014901161, y: 0.37700006, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -94,18 +94,18 @@ MonoBehaviour:
     ScreenPosition: {x: 0.000000074505806, y: 0.07000001}
     DeadZone:
       Enabled: 1
-      Size: {x: 0.19152424, y: 0.35}
+      Size: {x: 0.1, y: 0.35}
     HardLimits:
-      Enabled: 0
-      Size: {x: 0.88, y: 0.8}
+      Enabled: 1
+      Size: {x: 0.88, y: 0.7624998}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
   TargetOffset: {x: 0, y: -0.4, z: 0}
-  Damping: {x: 2.5, y: 1, z: 1}
+  Damping: {x: 2, y: 1, z: 1}
   Lookahead:
     Enabled: 1
-    Time: 0.3
-    Smoothing: 0
+    Time: 0.6
+    Smoothing: 2
     IgnoreY: 1
 --- !u!1 &3616683428782560532
 GameObject:
