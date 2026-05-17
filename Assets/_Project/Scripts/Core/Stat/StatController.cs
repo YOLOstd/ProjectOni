@@ -21,8 +21,7 @@ namespace ProjectOni.Core
         private readonly List<AttributeConversion> _allConversions = new();
         
         private EquipmentManager _equipment;
-        private HealthComponent  _health;
-        private LevelComponent   _level;
+        private EntityState      _entityState;
 
         public float Get(StatType type) =>
             _stats.TryGetValue(type, out var s) ? s.Value : 0f;
@@ -31,9 +30,30 @@ namespace ProjectOni.Core
 
         private void Awake()
         {
-            _equipment = GetComponent<EquipmentManager>();
-            _health    = GetComponent<HealthComponent>();
-            _level     = GetComponent<LevelComponent>();
+            _equipment   = GetComponent<EquipmentManager>();
+        }
+
+        public void Initialize(EntityState entityState)
+        {
+            _entityState = entityState;
+            if (_entityState != null)
+            {
+                _entityState.Level.onChangedWithOld += OnLevelChanged;
+            }
+            Recalculate();
+        }
+
+        private void OnDestroy()
+        {
+            if (_entityState != null)
+            {
+                _entityState.Level.onChangedWithOld -= OnLevelChanged;
+            }
+        }
+
+        private void OnLevelChanged(int oldVal, int newVal)
+        {
+            Recalculate();
         }
 
         private void OnEnable()
@@ -80,9 +100,30 @@ namespace ProjectOni.Core
                 CalculateStat(type);
             }
 
-            // 3. Update Health Component
-            if (_health != null)
-                _health.SetMaxHealth(Get(StatType.Health));
+            // 3. Write networked health stats (owner/server only, dirty-checked)
+            if (_entityState != null && (_entityState.isOwner || _entityState.isServer))
+            {
+                float newMax = Get(StatType.Health);
+                if (!Mathf.Approximately(_entityState.MaxHealth.value, newMax))
+                {
+                    float pct = _entityState.MaxHealth.value > 0f
+                        ? _entityState.CurrentHealth.value / _entityState.MaxHealth.value
+                        : 1f;
+
+                    _entityState.MaxHealth.value     = newMax;
+                    _entityState.CurrentHealth.value = Mathf.Round(newMax * pct);
+                }
+            }
+
+            // 4. Flush all local (non-networked) stats to EntityState
+            if (_entityState != null)
+            {
+                foreach (var kvp in _stats)
+                {
+                    if (kvp.Key == StatType.Health) continue; // Health is networked, skip
+                    _entityState.SetStat(kvp.Key, kvp.Value.Value);
+                }
+            }
 
             OnRecalculated?.Invoke();
             GameEvents.TriggerStatsRecalculated(this);
@@ -111,7 +152,7 @@ namespace ProjectOni.Core
 
         private void CalculateStat(StatType type)
         {
-            int level = _level != null ? _level.Level : 1;
+            int level = _entityState != null ? _entityState.Level.value : 1;
 
             // Create the stat with base value
             float baseVal = GetBaseValueForStat(type, level);

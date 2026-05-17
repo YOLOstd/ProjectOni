@@ -10,13 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 392025a4534fd124c9fae6681b73d4c7, type: 3}
-  m_Name: AttributeConversionSettings
+  m_Name: GlobalStatSettings
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Data.StatSettingsSO
   globalConversions:
-  - sourceStat: 0
+  - sourceStat: 11
     targetStat: 0
     targetModType: 0
     mode: 0
-    stepSize: 0
-    valuePerStep: 0
+    stepSize: 1
+    valuePerStep: 5
     conversionRate: 0

@@ -621,6 +621,9 @@ GameObject:
   - component: {fileID: 2505557195605727394}
   - component: {fileID: 4184434757669412811}
   - component: {fileID: 6224076479167428354}
+  - component: {fileID: 8754394661397257919}
+  - component: {fileID: 2301970503729728528}
+  - component: {fileID: 6593033093721025928}
   m_Layer: 3
   m_Name: Combat
   m_TagString: Untagged
@@ -693,6 +696,63 @@ MonoBehaviour:
   _anim: {fileID: 3651514086065238050}
   _audioSource: {fileID: 5445164771663991978}
   _projectileSpawnPoint: {fileID: 4952071546880489220}
+--- !u!114 &8754394661397257919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6297002530983739870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 369a42888b491c54087b0672910c9cfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Core.StatController
+  _baseStats: {fileID: 11400000, guid: 1c6f7ea0c0471224e8e972a7db31dac8, type: 2}
+  _globalSettings: {fileID: 11400000, guid: 4bceb13557db2d74b955bdb14ccfa0fa, type: 2}
+--- !u!114 &2301970503729728528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6297002530983739870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d28d1d306e6f6bc419cdda8ad295f9d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Core.EntityState
+  _networkRules: {fileID: 0}
+  _visitiblityRules: {fileID: 0}
+  _isSetup: 0
+  _prefabId: -2147483648
+  _componentIndex: -2147483648
+  _shouldBePooled: 0
+  _parent: {fileID: 0}
+  _invertedPathToNearestParent: 
+  _directChildren: []
+--- !u!114 &6593033093721025928
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6297002530983739870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c0adfe3d696fd04fb89ea5b8f4a86e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Core.HealthComponent
+  _networkRules: {fileID: 0}
+  _visitiblityRules: {fileID: 0}
+  _isSetup: 0
+  _prefabId: -2147483648
+  _componentIndex: -2147483648
+  _shouldBePooled: 0
+  _parent: {fileID: 0}
+  _invertedPathToNearestParent: 
+  _directChildren: []
+  _baseMaxHealth: 100
 --- !u!1 &6802796932895432719
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,6 +8,7 @@ namespace ProjectOni.UI
         [Header("UI Components")]
         [SerializeField] private SkillBarUI skillBar;
         [SerializeField] private HealthUI healthUI;
+        [SerializeField] private CharacterStatMenuUI charStatMenu;
 
         public static HUDManager Instance { get; private set; }
 
@@ -15,6 +16,12 @@ namespace ProjectOni.UI
         {
             if (Instance == null) Instance = this;
             else Destroy(gameObject);
+        }
+
+        public void BindLocalPlayer(HealthComponent health, StatController stats)
+        {
+            if (healthUI != null) healthUI.Bind(health);
+            if (charStatMenu != null) charStatMenu.Bind(stats);
         }
 
         public void UpdateSkillSlot(int index, Sprite icon, string label)

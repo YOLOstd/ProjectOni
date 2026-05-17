@@ -19,14 +19,11 @@ namespace ProjectOni.Core
         [Header("Base Health (used if StatController is absent)")]
         [SerializeField] private float _baseMaxHealth = 100f;
 
-        // Owner-auth: owner writes, server+clients read via SyncVar sync.
-        // For enemies the server is the de-facto owner so this still works.
-        private readonly SyncVar<float> _currentHealth = new(0f, ownerAuth: true);
-        private readonly SyncVar<float> _maxHealth     = new(0f, ownerAuth: true);
+        private EntityState _entityState;
 
-        public float Current => _currentHealth.value;
-        public float Max     => _maxHealth.value;
-        public bool  IsDead  => _currentHealth.value <= 0f;
+        public float Current => _entityState != null ? _entityState.CurrentHealth.value : 0f;
+        public float Max     => _entityState != null ? _entityState.MaxHealth.value : 0f;
+        public bool  IsDead  => Current <= 0f;
 
         // UI / VFX / audio listen here — not global GameEvents
         public event Action<float, float> OnHealthChanged; // (current, max)
@@ -34,39 +31,42 @@ namespace ProjectOni.Core
 
         // ─── Lifecycle ────────────────────────────────────────────────────────
 
+        private void Awake()
+        {
+            _entityState = GetComponent<EntityState>();
+        }
+
         protected override void OnSpawned()
         {
-            _currentHealth.onChangedWithOld += OnCurrentHealthSync;
-            _maxHealth.onChangedWithOld     += OnMaxHealthSync;
-
-            // Initialise on the owner (or server for enemies)
-            if (isOwner || isServer)
+            if (_entityState != null)
             {
-                _maxHealth.value     = _baseMaxHealth;
-                _currentHealth.value = _baseMaxHealth;
+                _entityState.CurrentHealth.onChangedWithOld += OnCurrentHealthSync;
+                _entityState.MaxHealth.onChangedWithOld     += OnMaxHealthSync;
+
+                // Initialise on the owner (or server for enemies)
+                if (isOwner || isServer)
+                {
+                    if (_entityState.MaxHealth.value <= 0f)
+                    {
+                        _entityState.MaxHealth.value     = _baseMaxHealth;
+                        _entityState.CurrentHealth.value = _baseMaxHealth;
+                    }
+                }
             }
         }
 
         protected override void OnDespawned(bool asServer)
         {
-            _currentHealth.onChangedWithOld -= OnCurrentHealthSync;
-            _maxHealth.onChangedWithOld     -= OnMaxHealthSync;
+            if (_entityState != null)
+            {
+                _entityState.CurrentHealth.onChangedWithOld -= OnCurrentHealthSync;
+                _entityState.MaxHealth.onChangedWithOld     -= OnMaxHealthSync;
+            }
         }
 
         // ─── Public API ───────────────────────────────────────────────────────
 
-        /// <summary>Called by StatController when equipment changes the health cap.</summary>
-        public void SetMaxHealth(float newMax)
-        {
-            if (!isOwner && !isServer) return;
 
-            float pct = _maxHealth.value > 0f
-                ? _currentHealth.value / _maxHealth.value
-                : 1f;
-
-            _maxHealth.value     = newMax;
-            _currentHealth.value = Mathf.Round(newMax * pct);
-        }
 
         /// <summary>
         /// IDamageable entry point. Safe to call from any client —
@@ -74,6 +74,8 @@ namespace ProjectOni.Core
         /// </summary>
         public void TakeDamage(float amount)
         {
+            if (_entityState == null) return;
+
             if (isOwner || isServer)
             {
                 ApplyDamage(amount);
@@ -87,8 +89,9 @@ namespace ProjectOni.Core
 
         public void Heal(float amount)
         {
+            if (_entityState == null) return;
             if (!isOwner && !isServer) return;
-            _currentHealth.value = Mathf.Min(_maxHealth.value, _currentHealth.value + amount);
+            _entityState.CurrentHealth.value = Mathf.Min(Max, Current + amount);
         }
 
         // ─── Internal ─────────────────────────────────────────────────────────
@@ -96,7 +99,7 @@ namespace ProjectOni.Core
         private void ApplyDamage(float amount)
         {
             if (IsDead) return;
-            _currentHealth.value = Mathf.Max(0f, _currentHealth.value - amount);
+            _entityState.CurrentHealth.value = Mathf.Max(0f, Current - amount);
         }
 
         [ServerRpc(requireOwnership: false)]
@@ -108,7 +111,7 @@ namespace ProjectOni.Core
         // SyncVar callbacks fire on ALL clients (including the one that wrote)
         private void OnCurrentHealthSync(float oldVal, float newVal)
         {
-            OnHealthChanged?.Invoke(newVal, _maxHealth.value);
+            OnHealthChanged?.Invoke(newVal, Max);
 
             if (newVal <= 0f && oldVal > 0f)
             {
@@ -119,7 +122,7 @@ namespace ProjectOni.Core
 
         private void OnMaxHealthSync(float oldVal, float newVal)
         {
-            OnHealthChanged?.Invoke(_currentHealth.value, newVal);
+            OnHealthChanged?.Invoke(Current, newVal);
         }
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using PurrNet;
+using ProjectOni.Core;
+using ProjectOni.UI;
 
 namespace ProjectOni.Player
 {
@@ -62,14 +64,46 @@ namespace ProjectOni.Player
         protected override void OnSpawned()
         {
             base.OnSpawned();
+            
             if (!isOwner)
             {
+                Debug.Log($"[PlayerController] Remote player spawned. isOwner: false");
                 _rb.bodyType = RigidbodyType2D.Kinematic;
                 _rb.linearVelocity = Vector2.zero;
                 var vcam = GetComponentInChildren<Unity.Cinemachine.CinemachineCamera>();
                 if (vcam != null)
                 {
                     vcam.enabled = false;
+                }
+            }
+            else
+            {
+                Debug.Log($"[PlayerController] Local owner spawned. isOwner: true. Resolving components in children...");
+                
+                var entityState = GetComponentInChildren<EntityState>();
+                var health      = GetComponentInChildren<HealthComponent>();
+                var stats       = GetComponentInChildren<StatController>();
+
+                Debug.Log($"[PlayerController] Resolved components: EntityState={entityState != null}, HealthComponent={health != null}, StatController={stats != null}");
+
+                if (stats != null)
+                {
+                    Debug.Log("[PlayerController] Initializing StatController with EntityState.");
+                    stats.Initialize(entityState);
+                }
+                else
+                {
+                    Debug.LogError("[PlayerController] StatController was not found in children!");
+                }
+
+                if (HUDManager.Instance != null)
+                {
+                    Debug.Log("[PlayerController] Binding HUD to local player components.");
+                    HUDManager.Instance.BindLocalPlayer(health, stats);
+                }
+                else
+                {
+                    Debug.LogWarning("[PlayerController] HUDManager.Instance is null when spawning local player!");
                 }
             }
         }
