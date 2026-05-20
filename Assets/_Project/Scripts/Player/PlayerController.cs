@@ -29,7 +29,6 @@ namespace ProjectOni.Player
         private float _frameLeftGrounded = float.MinValue;
         private bool _coyoteUsable;
         private float _wallJumpUnlockTime;
-        private bool _hasAirDodged;
 
         public bool IsGrounded => _grounded;
         public bool IsOnWall => _onWall;
@@ -47,11 +46,10 @@ namespace ProjectOni.Player
         public event Action Jumped;
         #endregion
 
-        #region Dodge Data
-        public bool CanDodge { get; private set; } = true;
-        private float _dodgeCooldownTimer;
-        private Vector2 _dodgeDir;
-        private float _activeDodgePower;
+        #region Dodge API & Physics Boundary
+        public void SetVelocity(Vector2 velocity) => _frameVelocity = velocity;
+        public Vector2 GetVelocity() => _frameVelocity;
+        public void TeleportTo(Vector2 targetPosition) => transform.position = targetPosition;
         #endregion
 
         private void Awake()
@@ -137,8 +135,6 @@ namespace ProjectOni.Player
             {
                 _grounded = true;
                 _coyoteUsable = true;
-                CanDodge = true;
-                _hasAirDodged = false;
                 AirJumpsRemaining = _stats.MaxAirJumps;
                 GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
             }
@@ -174,6 +170,12 @@ namespace ProjectOni.Player
             }
         }
 
+        public void ApplyAttackLunge(float lungeForce)
+        {
+            // Push the player forward in the direction they are facing
+            _frameVelocity.x = _facingDir.value * lungeForce;
+        }
+
         public void HandleGravity()
         {
             if (_grounded && _frameVelocity.y <= 0f)
@@ -188,6 +190,29 @@ namespace ProjectOni.Player
             {
                 // Simple falling gravity. Jump cut is handled by ApplyJumpCut()
                 _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, _stats.FallAcceleration * Time.fixedDeltaTime);
+            }
+        }
+
+        public void OnAirborneAttackInitiated()
+        {
+            // Removed instant vertical velocity dampening.
+            // Slow-mo trajectory is now handled dynamically in HandleAirborneAttackGravity.
+        }
+
+        public void HandleAirborneAttackGravity()
+        {
+            if (_grounded && _frameVelocity.y <= 0f)
+            {
+                _frameVelocity.y = _stats.GroundingForce;
+            }
+            else
+            {
+                // Smoothly drag both horizontal and vertical velocity to simulate "slow mo" air resistance.
+                // This creates a smooth slowdown that preserves the original direction/arc.
+                _frameVelocity = Vector2.Lerp(_frameVelocity, Vector2.zero, _stats.AirborneAttackDrag * Time.fixedDeltaTime);
+        
+                // Accelerate downwards at a gentle pace towards a floaty fall speed ceiling
+                _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.AirborneAttackMaxFallSpeed, _stats.AirborneAttackFallAcceleration * Time.fixedDeltaTime);
             }
         }
 
@@ -226,48 +251,6 @@ namespace ProjectOni.Player
         public void ApplyJumpCut()
         {
             _frameVelocity.y *= _stats.JumpCutMultiplier;
-        }
-
-        public void InitiateDodge(Vector2 inputDir)
-        {
-            CanDodge = false;
-            _dodgeCooldownTimer = _stats.DodgeCooldown;
-            
-            if (!_grounded) _hasAirDodged = true;
-
-            // If no input, dodge in forward direction
-            _dodgeDir = inputDir != Vector2.zero ? inputDir.normalized : new Vector2(_facingDir.value, 0);
-            
-            _activeDodgePower = _grounded ? _stats.DodgePower : _stats.AirDodgePower;
-            _frameVelocity = _dodgeDir * _activeDodgePower;
-        }
-
-        public void HandleDodgeMovement()
-        {
-            // Maintain dodge velocity during the state
-            _frameVelocity = _dodgeDir * _activeDodgePower;
-        }
-
-        public void EndDodge()
-        {
-            if (!_grounded)
-            {
-                _hasAirDodged = true;
-                _frameVelocity.x = Mathf.Clamp(_frameVelocity.x, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
-                _frameVelocity.y = Mathf.Clamp(_frameVelocity.y, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
-            }
-        }
-
-        public void UpdateDodgeCooldown()
-        {
-            if (_dodgeCooldownTimer > 0)
-            {
-                _dodgeCooldownTimer -= Time.deltaTime;
-                if (_dodgeCooldownTimer <= 0)
-                {
-                    if (_grounded || !_hasAirDodged) CanDodge = true;
-                }
-            }
         }
 
         #endregion

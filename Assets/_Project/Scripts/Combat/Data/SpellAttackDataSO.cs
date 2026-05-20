@@ -11,11 +11,16 @@ namespace ProjectOni.Combat.Data
         public float spellSpeed = 10f;
         public Vector2 spellSpawnOffset;
 
-        public override VisualRequest Execute(AttackContext ctx)
+        [Header("Recovery Timing")]
+        public float recoveryTime = 0.5f;
+
+        public override AttackResult Execute(AttackContext ctx)
         {
             // Here we could handle mana consumption logic if needed
             
-            return new VisualRequest
+            float lockTime = recoveryTime / Mathf.Max(0.1f, ctx.CastSpeedMultiplier);
+
+            var visuals = new VisualRequest
             {
                 animationTrigger = animationTrigger,
                 sfx = castSFX,
@@ -24,6 +29,13 @@ namespace ProjectOni.Combat.Data
                 damage = CalculateDamage(ctx.SkillLevel),
                 spawnOffset = spellSpawnOffset,
                 hitVFXPrefab = hitVFXPrefab
+            };
+
+            return new AttackResult
+            {
+                Success = true,
+                GlobalLockTime = lockTime,
+                Visuals = visuals
             };
         }
     }

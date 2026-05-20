@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 1098528546763593062}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.0000014901161, y: 0.37700006, z: -10}
+  m_LocalPosition: {x: -0.0000014901161, y: 0.56700003, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -230,7 +230,8 @@ GameObject:
   - component: {fileID: 6452312685625425834}
   - component: {fileID: 7201499504868240351}
   - component: {fileID: 5445164771663991978}
-  - component: {fileID: 8255649829002090051}
+  - component: {fileID: 3807250993106793021}
+  - component: {fileID: 6180385046793260476}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -578,7 +579,19 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &8255649829002090051
+--- !u!114 &3807250993106793021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4516519185947939377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 575f125f1164c664792660b95076556c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Player.DodgeController
+--- !u!114 &6180385046793260476
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -974,7 +987,7 @@ Transform:
   m_GameObject: {fileID: 8877921125841444163}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.19, z: 0}
   m_LocalScale: {x: 5, y: 5, z: 5}
   m_ConstrainProportionsScale: 0
   m_Children: []

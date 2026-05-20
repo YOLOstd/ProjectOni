@@ -28,4 +28,9 @@ MonoBehaviour:
   slashPrefab: {fileID: 1511727961467722785, guid: d12d21a65282b9a45a689dbb90e43b72, type: 3}
   slashDuration: 1
   hitboxStartTime: 0.05
-  hitboxDuration: 0.2
+  hitboxDuration: 0.1
+  comboRecoveryTimes:
+  - 0.05
+  antiGravityTime: 0.4
+  comboLungeForces:
+  - 6

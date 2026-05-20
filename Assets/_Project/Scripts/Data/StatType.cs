@@ -10,6 +10,7 @@ namespace ProjectOni.Data
         // Attack
         Attack,
         AttackSpeed,
+        CastSpeed,
         CritChance,
         CritDamage,
         Aoe,

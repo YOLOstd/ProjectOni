@@ -23,15 +23,23 @@ namespace ProjectOni.Combat
             _collider.enabled = false;
         }
 
+        private Coroutine _hitboxRoutine;
+
         public void Initialize(float damage, float startTime = 0f, float duration = 0f)
         {
             _damage = damage;
             _hitColliders.Clear();
             _collider.enabled = false;
 
+            if (_hitboxRoutine != null)
+            {
+                StopCoroutine(_hitboxRoutine);
+                _hitboxRoutine = null;
+            }
+
             if (gameObject.activeInHierarchy)
             {
-                StartCoroutine(HitboxRoutine(startTime, duration));
+                _hitboxRoutine = StartCoroutine(HitboxRoutine(startTime, duration));
             }
         }
 
@@ -54,6 +62,21 @@ namespace ProjectOni.Combat
             _damage = 0f;
             _hitColliders.Clear();
             if (_collider != null) _collider.enabled = false;
+
+            if (_hitboxRoutine != null)
+            {
+                StopCoroutine(_hitboxRoutine);
+                _hitboxRoutine = null;
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (_hitboxRoutine != null)
+            {
+                StopCoroutine(_hitboxRoutine);
+                _hitboxRoutine = null;
+            }
         }
 
         private void OnTriggerEnter2D(Collider2D collision)

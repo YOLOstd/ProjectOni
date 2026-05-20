@@ -21,6 +21,6 @@ namespace ProjectOni.Combat.Data
         }
 
         // Implementation of IAttackBehavior
-        public abstract VisualRequest Execute(AttackContext ctx);
+        public abstract AttackResult Execute(AttackContext ctx);
     }
 }

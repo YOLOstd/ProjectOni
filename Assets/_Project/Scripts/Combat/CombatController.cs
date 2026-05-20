@@ -17,6 +17,12 @@ namespace ProjectOni.Combat
         public EquipmentSlotDefinition equipmentSlot;
     }
 
+    public struct BufferedInput
+    {
+        public ActionSlot Slot;
+        public float Timestamp;
+    }
+
     public class CombatController : NetworkBehaviour
     {
         [Header("Settings")]
@@ -29,6 +35,42 @@ namespace ProjectOni.Combat
         [SerializeField] private StatController _statController;
 
         private Dictionary<ActionSlot, float> _cooldowns = new();
+        
+        private float _globalLockEndTime;
+        private float _antiGravityEndTime;
+        private BufferedInput? _bufferedInput;
+        private const float BufferWindow = 0.3f;
+        private Coroutine _activeHitboxRoutine;
+        
+        private PlayerController _playerController;
+        private DodgeController _dodgeController;
+
+        public bool IsGlobalLocked => Time.time < _globalLockEndTime;
+        public bool IsAntiGravityActive => Time.time < _antiGravityEndTime;
+
+        public void CancelGlobalLock()
+        {
+            _globalLockEndTime = 0f;
+            _antiGravityEndTime = 0f;
+            _bufferedInput = null;
+            
+            if (_activeHitboxRoutine != null)
+            {
+                StopCoroutine(_activeHitboxRoutine);
+                _activeHitboxRoutine = null;
+            }
+
+            RpcCancelVisuals();
+        }
+
+        [ObserversRpc(runLocally: true, requireServer: false)]
+        private void RpcCancelVisuals()
+        {
+            if (_combatAnimator != null)
+            {
+                _combatAnimator.CancelVisuals();
+            }
+        }
 
         protected override void OnSpawned()
         {
@@ -36,11 +78,71 @@ namespace ProjectOni.Combat
             if (_equipmentManager == null) _equipmentManager = GetComponent<EquipmentManager>();
             if (_combatAnimator == null) _combatAnimator = GetComponentInChildren<CombatAnimator>();
             if (_statController == null) _statController = GetComponent<StatController>();
+            _playerController = GetComponent<PlayerController>();
+            if (_playerController == null) _playerController = GetComponentInParent<PlayerController>();
+            _dodgeController = GetComponent<DodgeController>();
+            if (_dodgeController == null) _dodgeController = GetComponentInParent<DodgeController>();
+            if (_dodgeController == null) _dodgeController = GetComponentInChildren<DodgeController>();
+        }
+
+        private void Update()
+        {
+            if (!isOwner) return;
+
+            if (_bufferedInput.HasValue)
+            {
+                bool isBlockedByDodge = _dodgeController != null && _dodgeController.IsDodging;
+
+                if (isBlockedByDodge)
+                {
+                    // Artificially keep the buffered input fresh for the entire duration of the dodge.
+                    // Once the dodge ends, the buffer considers the input to be 0 milliseconds old.
+                    var buffered = _bufferedInput.Value;
+                    buffered.Timestamp = Time.time;
+                    _bufferedInput = buffered;
+                }
+
+                // Only release the buffer if both global lock has ended AND the player is no longer dodging
+                if (Time.time >= _globalLockEndTime && !isBlockedByDodge)
+                {
+                    var buffered = _bufferedInput.Value;
+                    if (Time.time - buffered.Timestamp <= BufferWindow)
+                    {
+                        Vector2 latestDirection = _playerController != null 
+                            ? new Vector2(_playerController.FacingDir, 0) 
+                            : Vector2.right;
+
+                        _bufferedInput = null;
+                        TriggerAction(buffered.Slot, latestDirection);
+                    }
+                    else
+                    {
+                        // Expired
+                        _bufferedInput = null;
+                    }
+                }
+            }
         }
 
         public void TriggerAction(ActionSlot slot, Vector2 direction)
         {
             if (!isOwner) return;
+
+            // If we are actively dodging/invincible, queue this action to be executed once the dodge ends
+            if (_dodgeController != null && _dodgeController.IsInvincible)
+            {
+                _bufferedInput = new BufferedInput { Slot = slot, Timestamp = Time.time };
+                return;
+            }
+
+            if (Time.time < _globalLockEndTime)
+            {
+                if (Time.time >= _globalLockEndTime - BufferWindow)
+                {
+                    _bufferedInput = new BufferedInput { Slot = slot, Timestamp = Time.time };
+                }
+                return; // Blocked by global lock
+            }
 
             var binding = _bindings.Find(b => b.slot == slot);
             if (binding.equipmentSlot == null) return;
@@ -48,10 +150,21 @@ namespace ProjectOni.Combat
             var item = _equipmentManager.GetItemInSlot(binding.equipmentSlot);
             if (!item.IsValid) return;
 
-            // Try to find any attack behavior (Weapon or Spell)
             IAttackBehavior behavior = null;
             float cooldown = 0.5f;
             int skillLevel = 1;
+
+            float attackSpeedMultiplier = 1f;
+            float castSpeedMultiplier = 1f;
+
+            if (_statController != null)
+            {
+                attackSpeedMultiplier = _statController.Get(StatType.AttackSpeed);
+                if (attackSpeedMultiplier <= 0f) attackSpeedMultiplier = 0.1f;
+                
+                castSpeedMultiplier = _statController.Get(StatType.CastSpeed);
+                if (castSpeedMultiplier <= 0f) castSpeedMultiplier = 0.1f;
+            }
 
             var weapon = item.GetTrait<WeaponTrait>();
             if (weapon != null)
@@ -60,14 +173,7 @@ namespace ProjectOni.Combat
                 skillLevel = weapon.skillLevel;
                 if (weapon.attackData != null)
                 {
-                    float baseCooldown = weapon.attackData.attackCooldown;
-                    float attackSpeedMultiplier = 1f;
-                    if (_statController != null)
-                    {
-                        attackSpeedMultiplier = _statController.Get(StatType.AttackSpeed);
-                        if (attackSpeedMultiplier <= 0f) attackSpeedMultiplier = 1f;
-                    }
-                    cooldown = baseCooldown / attackSpeedMultiplier;
+                    cooldown = weapon.attackData.attackCooldown / attackSpeedMultiplier;
                 }
             }
             else
@@ -79,36 +185,53 @@ namespace ProjectOni.Combat
                     skillLevel = spell.skillLevel;
                     if (spell.spellData != null)
                     {
-                        cooldown = spell.spellData.attackCooldown;
+                        cooldown = spell.spellData.attackCooldown / castSpeedMultiplier;
                     }
                 }
             }
 
             if (behavior == null) return;
 
-            ExecuteAction(slot, behavior, cooldown, direction, skillLevel);
+            ExecuteAction(slot, behavior, cooldown, direction, skillLevel, attackSpeedMultiplier, castSpeedMultiplier);
         }
 
-        private void ExecuteAction(ActionSlot slot, IAttackBehavior behavior, float cooldown, Vector2 direction, int skillLevel)
+        private void ExecuteAction(ActionSlot slot, IAttackBehavior behavior, float cooldown, Vector2 direction, int skillLevel, float attackSpdMult, float castSpdMult)
         {
             if (_cooldowns.TryGetValue(slot, out float lastTime) && Time.time < lastTime + cooldown)
                 return;
 
             _cooldowns[slot] = Time.time;
 
-            // Execute Logic (Optimistic)
-            VisualRequest request = behavior.Execute(new AttackContext
+            // Execute Logic
+            AttackResult result = behavior.Execute(new AttackContext
             {
                 Caster = gameObject,
                 TargetLayer = _targetLayer,
                 Direction = direction,
                 Position = transform.position,
-                SkillLevel = skillLevel
+                SkillLevel = skillLevel,
+                AttackSpeedMultiplier = attackSpdMult,
+                CastSpeedMultiplier = castSpdMult
             });
-            Debug.Log($"[CombatController] Action executed: {slot} on {gameObject.name}");
+
+            if (!result.Success) return;
+
+            _globalLockEndTime = Time.time + result.GlobalLockTime;
+            _antiGravityEndTime = Time.time + result.AntiGravityTime;
+
+            if (_playerController != null)
+            {
+                _playerController.OnAirborneAttackInitiated();
+                if (result.LungeForce > 0)
+                {
+                    _playerController.ApplyAttackLunge(result.LungeForce);
+                }
+            }
+
+            Debug.Log($"[CombatController] Action executed: {slot} on {gameObject.name}. LockTime: {result.GlobalLockTime}, AntiGravityTime: {result.AntiGravityTime}");
 
             // Trigger Visuals for everyone
-            RpcPlayVisuals(request, direction);
+            RpcPlayVisuals(result.Visuals, direction);
         }
 
         [ObserversRpc(runLocally: true, requireServer: false)]

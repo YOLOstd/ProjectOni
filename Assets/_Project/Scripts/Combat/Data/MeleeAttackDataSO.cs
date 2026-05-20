@@ -21,9 +21,17 @@ namespace ProjectOni.Combat.Data
         public float hitboxStartTime = 0.05f;
         public float hitboxDuration = 0.1f;
 
+        [Header("Recovery Timing")]
+        public float[] comboRecoveryTimes;
+        public float antiGravityTime = 0.15f;
+
+        [Header("Movement")]
+        [Tooltip("Forward push force applied per combo hit")]
+        public float[] comboLungeForces;
+
         private Dictionary<GameObject, ComboState> _states = new();
 
-        public override VisualRequest Execute(AttackContext ctx)
+        public override AttackResult Execute(AttackContext ctx)
         {
             // Get or create state for this caster
             if (!_states.TryGetValue(ctx.Caster, out var state))
@@ -34,7 +42,14 @@ namespace ProjectOni.Combat.Data
 
             state.Advance(comboWindow);
 
-            return new VisualRequest
+            float baseRecovery = 0.5f;
+            if (comboRecoveryTimes != null && comboRecoveryTimes.Length > 0)
+            {
+                baseRecovery = comboRecoveryTimes[Mathf.Clamp(state.Index, 0, comboRecoveryTimes.Length - 1)];
+            }
+            float lockTime = baseRecovery / Mathf.Max(0.1f, ctx.AttackSpeedMultiplier);
+
+            var visuals = new VisualRequest
             {
                 animationTrigger = comboAnimationTriggers.Length > 0 ? comboAnimationTriggers[state.Index] : animationTrigger,
                 sfx = castSFX,
@@ -46,6 +61,21 @@ namespace ProjectOni.Combat.Data
                 lifetime = slashDuration,
                 hitboxStartTime = hitboxStartTime,
                 hitboxDuration = hitboxDuration
+            };
+
+            float lungeForce = 0f;
+            if (comboLungeForces != null && comboLungeForces.Length > 0)
+            {
+                lungeForce = comboLungeForces[Mathf.Clamp(state.Index, 0, comboLungeForces.Length - 1)];
+            }
+
+            return new AttackResult
+            {
+                Success = true,
+                GlobalLockTime = lockTime,
+                AntiGravityTime = antiGravityTime,
+                LungeForce = lungeForce,
+                Visuals = visuals
             };
         }
     }

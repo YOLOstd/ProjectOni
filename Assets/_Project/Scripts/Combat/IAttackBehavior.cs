@@ -67,10 +67,21 @@ namespace ProjectOni.Combat
         public Vector2 Direction;
         public Vector3 Position;
         public int SkillLevel;
+        public float AttackSpeedMultiplier;
+        public float CastSpeedMultiplier;
+    }
+
+    public struct AttackResult
+    {
+        public bool Success;
+        public float GlobalLockTime;
+        public float AntiGravityTime;
+        public float LungeForce;
+        public VisualRequest Visuals;
     }
 
     public interface IAttackBehavior
     {
-        VisualRequest Execute(AttackContext ctx);
+        AttackResult Execute(AttackContext ctx);
     }
 }

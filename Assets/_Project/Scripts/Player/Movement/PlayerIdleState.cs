@@ -16,7 +16,7 @@ namespace ProjectOni.Player.Movement
             }
 
             var input = ProjectOni.Managers.InputManager.Instance;
-            if (input.MoveDirection.x != 0)
+            if (input.MoveDirection.x != 0 && (StateMachine.Combat == null || !StateMachine.Combat.IsGlobalLocked))
             {
                 machine.SetState(StateMachine.MoveState);
                 return;

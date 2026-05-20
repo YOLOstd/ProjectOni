@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using UnityEngine.SceneManagement;
 
 namespace ProjectOni.Core
 {
@@ -21,6 +22,30 @@ namespace ProjectOni.Core
             {
                 Destroy(gameObject);
             }
+        }
+
+        private void OnEnable()
+        {
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
+        }
+
+        private void OnSceneUnloaded(Scene scene)
+        {
+            ClearAllPools();
+        }
+
+        public void ClearAllPools()
+        {
+            foreach (var pool in _pools.Values)
+            {
+                pool.Clear();
+            }
+            _pools.Clear();
         }
 
         private ObjectPool<GameObject> GetOrCreatePool(GameObject prefab)
@@ -46,19 +71,28 @@ namespace ProjectOni.Core
                 },
                 actionOnGet: (instance) =>
                 {
-                    instance.SetActive(true);
-                    if (instance.TryGetComponent<PooledVFX>(out var pooledVFX))
+                    if (instance != null)
                     {
-                        pooledVFX.ResetObject();
+                        instance.SetActive(true);
+                        if (instance.TryGetComponent<PooledVFX>(out var pooledVFX))
+                        {
+                            pooledVFX.ResetObject();
+                        }
                     }
                 },
                 actionOnRelease: (instance) =>
                 {
-                    instance.SetActive(false);
+                    if (instance != null)
+                    {
+                        instance.SetActive(false);
+                    }
                 },
                 actionOnDestroy: (instance) =>
                 {
-                    Destroy(instance);
+                    if (instance != null)
+                    {
+                        Destroy(instance);
+                    }
                 },
                 collectionCheck: false,
                 defaultCapacity: 10,
@@ -77,10 +111,20 @@ namespace ProjectOni.Core
             if (pool == null) return null;
 
             var instance = pool.Get();
-            var t = instance.transform;
-            t.SetParent(parent);
-            t.position = position;
-            t.rotation = rotation;
+            if (instance == null)
+            {
+                Debug.LogWarning($"[VFXPoolManager] Retrieved a destroyed pooled object for prefab {prefab.name}. Clearing pool and retrying.");
+                pool.Clear();
+                instance = pool.Get();
+            }
+
+            if (instance != null)
+            {
+                var t = instance.transform;
+                t.SetParent(parent);
+                t.position = position;
+                t.rotation = rotation;
+            }
 
             return instance;
         }

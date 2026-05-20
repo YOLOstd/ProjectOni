@@ -10,9 +10,14 @@ namespace ProjectOni.Combat.Data
         public float projectileSpeed = 10f;
         public Vector2 spawnOffset;
 
-        public override VisualRequest Execute(AttackContext ctx)
+        [Header("Recovery Timing")]
+        public float recoveryTime = 0.5f;
+
+        public override AttackResult Execute(AttackContext ctx)
         {
-            return new VisualRequest
+            float lockTime = recoveryTime / Mathf.Max(0.1f, ctx.AttackSpeedMultiplier);
+
+            var visuals = new VisualRequest
             {
                 animationTrigger = animationTrigger,
                 sfx = castSFX,
@@ -21,6 +26,13 @@ namespace ProjectOni.Combat.Data
                 damage = CalculateDamage(ctx.SkillLevel),
                 spawnOffset = spawnOffset,
                 hitVFXPrefab = hitVFXPrefab
+            };
+
+            return new AttackResult
+            {
+                Success = true,
+                GlobalLockTime = lockTime,
+                Visuals = visuals
             };
         }
     }

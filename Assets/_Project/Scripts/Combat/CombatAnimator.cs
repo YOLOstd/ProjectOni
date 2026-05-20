@@ -20,6 +20,7 @@ namespace ProjectOni.Combat
 
         private NetworkIdentity _identity;
         private HashSet<int> _validParameters = new();
+        private readonly List<GameObject> _activeVisuals = new();
 
         private void Awake()
         {
@@ -29,6 +30,23 @@ namespace ProjectOni.Combat
             _identity = GetComponentInParent<NetworkIdentity>();
 
             CacheAnimatorParameters();
+        }
+
+        public void CancelVisuals()
+        {
+            foreach (var visual in _activeVisuals)
+            {
+                if (visual == null) continue;
+                if (visual.TryGetComponent<PooledVFX>(out var pooled))
+                {
+                    pooled.Release();
+                }
+                else
+                {
+                    Destroy(visual);
+                }
+            }
+            _activeVisuals.Clear();
         }
 
         private void CacheAnimatorParameters()
@@ -79,6 +97,9 @@ namespace ProjectOni.Combat
             {
                 projGO = Instantiate(request.projectilePrefab, spawnPos, Quaternion.identity, parent);
             }
+
+            _activeVisuals.RemoveAll(x => x == null);
+            _activeVisuals.Add(projGO);
 
             // Rotate towards the attack direction
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
