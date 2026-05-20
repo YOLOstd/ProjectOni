@@ -239,6 +239,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 102493881}
+  - component: {fileID: 102493882}
   m_Layer: 5
   m_Name: Debugger
   m_TagString: Untagged
@@ -266,6 +267,22 @@ RectTransform:
   m_AnchoredPosition: {x: 25, y: 0}
   m_SizeDelta: {x: 50, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &102493882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 102493880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2845f289e5982ae44b1b5a1577cd30dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.UI.DodgeDebugUI
+  _debugText: {fileID: 2084742584}
+  _dodgeController: {fileID: 0}
+  _dodgingColor: {r: 0.2, g: 1, b: 0.2, a: 1}
+  _notDodgingColor: {r: 1, g: 0.2, b: 0.2, a: 1}
 --- !u!1 &145664255
 GameObject:
   m_ObjectHideFlags: 0

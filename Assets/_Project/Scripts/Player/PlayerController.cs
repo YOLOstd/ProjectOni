@@ -15,6 +15,7 @@ namespace ProjectOni.Player
         
         private Rigidbody2D _rb;
         private Vector2 _frameVelocity;
+        private Vector2 _externalVelocity;
 
         public TarodevController.PlayerMovementData Stats => _stats;
         public Vector2 CurrentVelocity => _frameVelocity;
@@ -50,6 +51,20 @@ namespace ProjectOni.Player
         public void SetVelocity(Vector2 velocity) => _frameVelocity = velocity;
         public Vector2 GetVelocity() => _frameVelocity;
         public void TeleportTo(Vector2 targetPosition) => transform.position = targetPosition;
+
+        /// <summary>
+        /// Apply an external force impulse (knockback, conveyor, etc).
+        /// X bypasses the hard-zero stop and decays via GroundDeceleration.
+        /// Y goes into the main velocity lane so gravity handles the arc naturally.
+        /// </summary>
+        public void AddExternalForce(Vector2 force)
+        {
+            // X goes into the external lane to bypass the hard-zero stop
+            _externalVelocity.x += force.x;
+            
+            // Y goes directly into frame velocity so gravity handles the arc naturally
+            _frameVelocity.y += force.y;
+        }
         #endregion
 
         private void Awake()
@@ -112,6 +127,7 @@ namespace ProjectOni.Player
             if (!isOwner) return;
 
             CheckCollisions();
+            DecayExternalVelocity();
             
             // Note: Movement logic is now driven by the State Machine calling methods here
             ApplyMovement();
@@ -158,8 +174,14 @@ namespace ProjectOni.Player
             
             if (inputX == 0)
             {
-                float deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
-                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, deceleration * Time.fixedDeltaTime);
+                if (_grounded)
+                {
+                    _frameVelocity.x = 0f; // Absolute zero — no player-driven slide
+                }
+                else
+                {
+                    _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, _stats.AirDeceleration * Time.fixedDeltaTime);
+                }
             }
             else
             {
@@ -255,6 +277,16 @@ namespace ProjectOni.Player
 
         #endregion
 
-        private void ApplyMovement() => _rb.linearVelocity = _frameVelocity;
+        private void DecayExternalVelocity()
+        {
+            // Only decay X. Gravity naturally handles the Y axis.
+            float decelX = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
+            _externalVelocity.x = Mathf.MoveTowards(_externalVelocity.x, 0, decelX * Time.fixedDeltaTime);
+            
+            // Ensure Y is strictly zeroed so it never interferes with gravity
+            _externalVelocity.y = 0f;
+        }
+
+        private void ApplyMovement() => _rb.linearVelocity = _frameVelocity + _externalVelocity;
     }
 }
