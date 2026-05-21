@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc644cf73f72f634ca003f9263add235, type: 3}
+  m_Name: KatanaSlash2
+  m_EditorClassIdentifier: Assembly-CSharp:ProjectOni.Combat:AttackNode
+  attackName: KatanaSlash2
+  skillIcon: {fileID: 0}
+  totalDuration: 0.5
+  normalNextNode: {fileID: 11400000, guid: f693b7a4e40483a4b8517d1a8407e624, type: 2}
+  perfectNextNode: {fileID: 11400000, guid: 0d5af5fb3895a604c82b6580a029dba8, type: 2}
+  perfectWindowStart: 1
+  perfectWindowEnd: 2
+  baseGlobalLockTime: 0.045
+  baseLungeForce: 10
+  baseAntiGravityTime: 0.4
+  visualData:
+    animationTrigger: 
+    sfx: {fileID: 0}
+    projectilePrefab: {fileID: 1511727961467722785, guid: d12d21a65282b9a45a689dbb90e43b72, type: 3}
+    projectileSpeed: 0
+    damage: 1
+    spawnOffset: {x: 0, y: 0}
+    hitVFXPrefab: {fileID: 0}
+    lifetime: 1
+    hitboxStartTime: 0
+    hitboxDuration: 1

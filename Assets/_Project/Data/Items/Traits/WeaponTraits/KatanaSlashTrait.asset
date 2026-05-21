@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Data.MeleeWeaponTrait
   traitName: Katana Slash
   skillLevel: 1
-  attackData: {fileID: 11400000, guid: 7f0d36c463c5de64b8fa4bf380ca2ca3, type: 2}
+  weaponSkill: {fileID: 11400000, guid: 7f0d36c463c5de64b8fa4bf380ca2ab1, type: 2}

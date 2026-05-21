@@ -45,10 +45,17 @@ namespace ProjectOni.Player
             var input = InputManager.Instance;
             if (input != null)
             {
-                input.AttackPressed += OnAttack;
-                input.SecondaryAttackPressed += OnSecondaryAttack;
-                input.SpellQPressed += OnSpellQ;
-                input.SpellEPressed += OnSpellE;
+                input.AttackPressed += OnAttackPressed;
+                input.AttackReleased += OnAttackReleased;
+                
+                input.SecondaryAttackPressed += OnSecondaryAttackPressed;
+                input.SecondaryAttackReleased += OnSecondaryAttackReleased;
+                
+                input.SpellQPressed += OnSpellQPressed;
+                input.SpellQReleased += OnSpellQReleased;
+                
+                input.SpellEPressed += OnSpellEPressed;
+                input.SpellEReleased += OnSpellEReleased;
             }
         }
 
@@ -57,43 +64,45 @@ namespace ProjectOni.Player
             var input = InputManager.Instance;
             if (input != null)
             {
-                input.AttackPressed -= OnAttack;
-                input.SecondaryAttackPressed -= OnSecondaryAttack;
-                input.SpellQPressed -= OnSpellQ;
-                input.SpellEPressed -= OnSpellE;
+                input.AttackPressed -= OnAttackPressed;
+                input.AttackReleased -= OnAttackReleased;
+                
+                input.SecondaryAttackPressed -= OnSecondaryAttackPressed;
+                input.SecondaryAttackReleased -= OnSecondaryAttackReleased;
+                
+                input.SpellQPressed -= OnSpellQPressed;
+                input.SpellQReleased -= OnSpellQReleased;
+                
+                input.SpellEPressed -= OnSpellEPressed;
+                input.SpellEReleased -= OnSpellEReleased;
             }
         }
 
-        private void OnAttack()
+        private void OnAttackPressed() => OnInputDown(ActionSlot.Primary);
+        private void OnAttackReleased() => OnInputUp(ActionSlot.Primary);
+
+        private void OnSecondaryAttackPressed() => OnInputDown(ActionSlot.Secondary);
+        private void OnSecondaryAttackReleased() => OnInputUp(ActionSlot.Secondary);
+
+        private void OnSpellQPressed() => OnInputDown(ActionSlot.Spell1);
+        private void OnSpellQReleased() => OnInputUp(ActionSlot.Spell1);
+
+        private void OnSpellEPressed() => OnInputDown(ActionSlot.Spell2);
+        private void OnSpellEReleased() => OnInputUp(ActionSlot.Spell2);
+
+        private void OnInputDown(ActionSlot slot)
         {
-            Debug.Log("OnAttack");
             if (_combatController != null)
             {
-                _combatController.TriggerAction(ActionSlot.Primary, GetAttackDirection());
+                _combatController.OnInputDown(slot, GetAttackDirection());
             }
         }
 
-        private void OnSecondaryAttack()
+        private void OnInputUp(ActionSlot slot)
         {
             if (_combatController != null)
             {
-                _combatController.TriggerAction(ActionSlot.Secondary, GetAttackDirection());
-            }
-        }
-
-        private void OnSpellQ()
-        {
-            if (_combatController != null)
-            {
-                _combatController.TriggerAction(ActionSlot.Spell1, GetAttackDirection());
-            }
-        }
-
-        private void OnSpellE()
-        {
-            if (_combatController != null)
-            {
-                _combatController.TriggerAction(ActionSlot.Spell2, GetAttackDirection());
+                _combatController.OnInputUp(slot);
             }
         }
 

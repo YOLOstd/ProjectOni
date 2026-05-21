@@ -59,7 +59,7 @@ namespace ProjectOni.UI
 
         private void FindDodgeController()
         {
-            _dodgeController = FindFirstObjectByType<DodgeController>();
+            _dodgeController = FindAnyObjectByType<DodgeController>();
         }
     }
 }

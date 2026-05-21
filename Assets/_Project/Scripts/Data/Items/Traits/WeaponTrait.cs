@@ -7,16 +7,17 @@ namespace ProjectOni.Data
     {
         [Header("Weapon Skill Conduit")]
         public int skillLevel = 1;
-        public ProjectOni.Combat.Data.AttackDataSO attackData;
+        public ProjectOni.Combat.WeaponSkill weaponSkill;
 
         public override string GetDescription()
         {
-            if (attackData == null) return "No Weapon Skill Assigned";
+            if (weaponSkill == null) return "No Weapon Skill Assigned";
+            if (weaponSkill.startingNode == null) return $"{weaponSkill.skillName} (Lvl {skillLevel})\nNo attacks assigned.";
             
-            float currentDmg = attackData.CalculateDamage(skillLevel);
-            return $"{attackData.attackName} (Lvl {skillLevel})\n" +
-                   $"Dmg: {currentDmg} (Base: {attackData.baseDamage} +{attackData.damageGrowthPerLevel}/lvl)\n" +
-                   $"CD: {attackData.attackCooldown}s | KB: {attackData.knockbackForce}";
+            float currentDmg = weaponSkill.startingNode.visualData.damage;
+            return $"{weaponSkill.skillName} (Lvl {skillLevel})\n" +
+                   $"Dmg: {currentDmg}\n" +
+                   $"Duration: {weaponSkill.startingNode.totalDuration}s";
         }
     }
 }

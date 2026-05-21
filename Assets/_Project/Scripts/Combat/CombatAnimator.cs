@@ -82,8 +82,23 @@ namespace ProjectOni.Combat
 
         private void SpawnProjectile(VisualRequest request, Vector2 direction)
         {
-            Vector3 spawnPos = _projectileSpawnPoint != null ? _projectileSpawnPoint.position : transform.position;
-            spawnPos += (Vector3)request.spawnOffset;
+            Vector3 basePos = transform.position;
+            if (_projectileSpawnPoint != null)
+            {
+                Vector3 localSpawnOffset = transform.InverseTransformPoint(_projectileSpawnPoint.position);
+                if (direction.x < 0)
+                {
+                    localSpawnOffset.x *= -1f;
+                }
+                basePos = transform.TransformPoint(localSpawnOffset);
+            }
+
+            Vector3 spawnOffset = (Vector3)request.spawnOffset;
+            if (direction.x < 0)
+            {
+                spawnOffset.x *= -1f;
+            }
+            Vector3 spawnPos = basePos + spawnOffset;
 
             // Melee slashes (speed = 0) should follow the player
             Transform parent = request.projectileSpeed == 0 ? (_projectileSpawnPoint != null ? _projectileSpawnPoint : transform) : null;
@@ -101,9 +116,17 @@ namespace ProjectOni.Combat
             _activeVisuals.RemoveAll(x => x == null);
             _activeVisuals.Add(projGO);
 
-            // Rotate towards the attack direction
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            projGO.transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+            // 1. Calculate the angle assuming the attack is ALWAYS on the right hemisphere
+            float baseAngle = Mathf.Atan2(direction.y, Mathf.Abs(direction.x)) * Mathf.Rad2Deg;
+
+            // 2. Apply this constrained right-side rotation
+            projGO.transform.rotation = Quaternion.Euler(0, 0, baseAngle);
+
+            // 3. If attacking left, perfectly mirror the entire right-side setup
+            if (direction.x < 0) 
+            {
+                projGO.transform.rotation *= Quaternion.Euler(0, 180, 0); 
+            }
 
             // Scale particle system speed based on target lifetime (slashDuration)
             if (request.lifetime > 0)

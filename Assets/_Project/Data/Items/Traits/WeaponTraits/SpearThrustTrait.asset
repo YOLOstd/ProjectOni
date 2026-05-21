@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Data.MeleeWeaponTrait
   traitName: Spear Thrust
   skillLevel: 1
-  attackData: {fileID: 11400000, guid: f982b75952149c048a9c72c43353cf5f, type: 2}
+  weaponSkill: {fileID: 11400000, guid: f982b75952149c048a9c72c43353cf5a, type: 2}

@@ -37,15 +37,18 @@ namespace ProjectOni.Data
     {
         [Header("Spell Skill Conduit")]
         public int skillLevel = 1;
-        public ProjectOni.Combat.Data.SpellAttackDataSO spellData;
+        public ProjectOni.Combat.SpellSkill spellSkill;
 
         public override string GetDescription()
         {
-            if (spellData == null) return "Spell: None";
-            float currentDmg = spellData.CalculateDamage(skillLevel);
-            return $"{spellData.attackName} (Lvl {skillLevel})\n" +
-                   $"Dmg: {currentDmg} (Base: {spellData.baseDamage} +{spellData.damageGrowthPerLevel}/lvl)\n" +
-                   $"Mana: {spellData.manaCost} | CD: {spellData.attackCooldown}s";
+            if (spellSkill == null) return "Spell: None";
+            if (spellSkill.startingNode == null) return $"{spellSkill.skillName} (Lvl {skillLevel})\nNo spell attacks assigned.";
+            
+            float currentDmg = spellSkill.startingNode.visualData.damage;
+            return $"{spellSkill.skillName} (Lvl {skillLevel})\n" +
+                   $"Dmg: {currentDmg}\n" +
+                   $"Mana: {spellSkill.manaCost} | CD: {spellSkill.cooldown}s\n" +
+                   $"Duration: {spellSkill.startingNode.totalDuration}s";
         }
     }
 }

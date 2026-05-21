@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c89fca96963387045aebe7e9180857bc
+guid: 328f2dd6fa670204bb923e7d0a5c7be2
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
@@ -104,3 +104,10 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 248665
+  packageName: Simple Stylized Slash Pack 2
+  packageVersion: 1.0
+  assetPath: Assets/NamuFX/_CommonAssets/Models/FX_Models/SlashMesh_01.fbx
+  uploadId: 584375

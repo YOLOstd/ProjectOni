@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b80e6e27ff4f2e3438c73aafe045bfa7
+guid: 492aabb2c8d78b249afcb1c8cf77cf3f
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -132,3 +132,10 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232943
+  packageName: Simple Stylized Slash Pack 1
+  packageVersion: 1.1
+  assetPath: Assets/NamuFX/_CommonAssets/Images/Common/Gradient01.tga
+  uploadId: 572345

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 335699dfaf4dea646af71b315e42b221
+guid: b4d498f8448ccbe42927a9c7c9ee0829
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -121,3 +121,10 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232943
+  packageName: Simple Stylized Slash Pack 1
+  packageVersion: 1.1
+  assetPath: Assets/NamuFX/_CommonAssets/Images/Noise/Noise17.png
+  uploadId: 572345

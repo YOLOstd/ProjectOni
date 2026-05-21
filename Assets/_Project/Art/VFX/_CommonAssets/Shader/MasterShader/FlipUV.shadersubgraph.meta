@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: da96e6a379e6c9049a82f42d25b0121d
+guid: 981765fed703446489c874c93098f39c
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -8,3 +8,10 @@ ScriptedImporter:
   assetBundleName: 
   assetBundleVariant: 
   script: {fileID: 11500000, guid: 60072b568d64c40a485e0fc55012dc9f, type: 3}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 248665
+  packageName: Simple Stylized Slash Pack 2
+  packageVersion: 1.0
+  assetPath: Assets/NamuFX/_CommonAssets/Shader/MasterShader/FlipUV.shadersubgraph
+  uploadId: 584375

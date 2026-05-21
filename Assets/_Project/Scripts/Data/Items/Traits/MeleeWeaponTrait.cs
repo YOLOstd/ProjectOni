@@ -7,10 +7,6 @@ namespace ProjectOni.Data
     {
         public override string GetDescription()
         {
-            if (attackData is ProjectOni.Combat.Data.MeleeAttackDataSO meleeData)
-            {
-                return base.GetDescription() + $"\nType: Melee | Range: {meleeData.swingRadius}m";
-            }
             return base.GetDescription() + "\nType: Melee";
         }
     }

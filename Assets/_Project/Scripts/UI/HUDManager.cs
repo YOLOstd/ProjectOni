@@ -58,9 +58,9 @@ namespace ProjectOni.UI
             if (activeWeapon.IsValid)
             {
                 var weaponTrait = activeWeapon.GetTrait<WeaponTrait>();
-                if (weaponTrait != null && weaponTrait.attackData != null)
+                if (weaponTrait != null && weaponTrait.weaponSkill != null)
                 {
-                    UpdateSkillSlot(0, weaponTrait.attackData.skillIcon, weaponTrait.attackData.attackName);
+                    UpdateSkillSlot(0, weaponTrait.weaponSkill.skillIcon, weaponTrait.weaponSkill.skillName);
                 }
                 else
                 {

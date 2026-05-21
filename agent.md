@@ -1,6 +1,6 @@
 # Project Oni Agent Context
 
-This project is a 2D hack'n'slash COOP platformer built on Unity using PurrNet for networking and the New Input System.
+This project is a 2D hack'n'slash COOP platformer built on Unity using PurrNet for networking (authority: everyone) and the New Input System.
 
 ## Technical Priorities
 - **Physics-Synced Logic**: Always use `FixedUpdate` and `Time.fixedDeltaTime` for core movement durations (dodges, dashes) to ensure frame-rate independent travel distances.

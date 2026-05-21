@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 487297e27c52b7c47acfe53512b3ecc9
+guid: 52c79bced9e5535499f6460374858747
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -121,3 +121,10 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 232943
+  packageName: Simple Stylized Slash Pack 1
+  packageVersion: 1.1
+  assetPath: Assets/NamuFX/_CommonAssets/Images/Common/TestSheet5.psd
+  uploadId: 572345

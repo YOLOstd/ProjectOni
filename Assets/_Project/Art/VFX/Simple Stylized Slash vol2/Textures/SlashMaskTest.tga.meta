@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 7d1a8f4b8f1b2a04cae5581915d7cf01
+guid: 58c069d83b76ca84bbf1d9a3ef944863
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -121,3 +121,10 @@ TextureImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 248665
+  packageName: Simple Stylized Slash Pack 2
+  packageVersion: 1.0
+  assetPath: Assets/NamuFX/Simple Stylized Slash vol2/Textures/SlashMaskTest.tga
+  uploadId: 584375

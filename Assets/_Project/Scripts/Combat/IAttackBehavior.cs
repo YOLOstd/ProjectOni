@@ -1,5 +1,4 @@
 using UnityEngine;
-using ProjectOni.Combat.Data;
 
 namespace ProjectOni.Combat
 {
@@ -44,37 +43,6 @@ namespace ProjectOni.Combat
         public float lifetime;
         public float hitboxStartTime;
         public float hitboxDuration;
-    }
-
-    public class ComboState
-    {
-        public int Index { get; private set; }
-        private float _lastAdvanceTime;
-        private int _maxSteps;
-
-        public ComboState(int maxSteps)
-        {
-            _maxSteps = maxSteps;
-        }
-
-        public void Advance(float window)
-        {
-            if (Time.time < _lastAdvanceTime + window)
-            {
-                Index = (Index + 1) % _maxSteps;
-            }
-            else
-            {
-                Index = 0;
-            }
-            _lastAdvanceTime = Time.time;
-        }
-
-        public void Reset()
-        {
-            Index = 0;
-            _lastAdvanceTime = 0;
-        }
     }
 
     public struct AttackContext

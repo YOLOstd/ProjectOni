@@ -7,9 +7,9 @@ namespace ProjectOni.Data
     {
         public override string GetDescription()
         {
-            if (attackData is ProjectOni.Combat.Data.RangedAttackDataSO rangedData)
+            if (weaponSkill != null && weaponSkill.startingNode != null)
             {
-                return base.GetDescription() + $"\nType: Ranged | Proj Speed: {rangedData.projectileSpeed}";
+                return base.GetDescription() + $"\nType: Ranged | Proj Speed: {weaponSkill.startingNode.visualData.projectileSpeed}m/s";
             }
             return base.GetDescription() + "\nType: Ranged";
         }

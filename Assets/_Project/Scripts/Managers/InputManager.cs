@@ -34,9 +34,13 @@ namespace ProjectOni.Managers
         public event Action InteractPressed;
         public event Action MenuTogglePressed;
         public event Action AttackPressed;
+        public event Action AttackReleased;
         public event Action SecondaryAttackPressed;
+        public event Action SecondaryAttackReleased;
         public event Action SpellQPressed;
+        public event Action SpellQReleased;
         public event Action SpellEPressed;
+        public event Action SpellEReleased;
 
         private void Awake()
         {
@@ -73,10 +77,27 @@ namespace ProjectOni.Managers
             if (_jumpAction != null) _jumpAction.canceled += OnJumpCanceled;
             if (_dodgeAction != null) _dodgeAction.performed += OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed += OnInteractTriggered;
-            if (_attackAction != null) _attackAction.performed += OnAttackTriggered;
-            if (_secondaryAttackAction != null) _secondaryAttackAction.performed += OnSecondaryAttackTriggered;
-            if (_spellQAction != null) _spellQAction.performed += OnSpellQTriggered;
-            if (_spellEAction != null) _spellEAction.performed += OnSpellETriggered;
+            
+            if (_attackAction != null)
+            {
+                _attackAction.performed += OnAttackTriggered;
+                _attackAction.canceled += OnAttackCanceled;
+            }
+            if (_secondaryAttackAction != null)
+            {
+                _secondaryAttackAction.performed += OnSecondaryAttackTriggered;
+                _secondaryAttackAction.canceled += OnSecondaryAttackCanceled;
+            }
+            if (_spellQAction != null)
+            {
+                _spellQAction.performed += OnSpellQTriggered;
+                _spellQAction.canceled += OnSpellQCanceled;
+            }
+            if (_spellEAction != null)
+            {
+                _spellEAction.performed += OnSpellETriggered;
+                _spellEAction.canceled += OnSpellECanceled;
+            }
             
             // Subscribe safely. DO NOT call .Enable() manually here!
             if (_playerToggleMenuAction != null)
@@ -99,10 +120,27 @@ namespace ProjectOni.Managers
             }
             if (_dodgeAction != null) _dodgeAction.performed -= OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed -= OnInteractTriggered;
-            if (_attackAction != null) _attackAction.performed -= OnAttackTriggered;
-            if (_secondaryAttackAction != null) _secondaryAttackAction.performed -= OnSecondaryAttackTriggered;
-            if (_spellQAction != null) _spellQAction.performed -= OnSpellQTriggered;
-            if (_spellEAction != null) _spellEAction.performed -= OnSpellETriggered;
+            
+            if (_attackAction != null)
+            {
+                _attackAction.performed -= OnAttackTriggered;
+                _attackAction.canceled -= OnAttackCanceled;
+            }
+            if (_secondaryAttackAction != null)
+            {
+                _secondaryAttackAction.performed -= OnSecondaryAttackTriggered;
+                _secondaryAttackAction.canceled -= OnSecondaryAttackCanceled;
+            }
+            if (_spellQAction != null)
+            {
+                _spellQAction.performed -= OnSpellQTriggered;
+                _spellQAction.canceled -= OnSpellQCanceled;
+            }
+            if (_spellEAction != null)
+            {
+                _spellEAction.performed -= OnSpellETriggered;
+                _spellEAction.canceled -= OnSpellECanceled;
+            }
             
             if (_playerToggleMenuAction != null)
                 _playerToggleMenuAction.performed -= OnToggleMenuTriggered;
@@ -125,10 +163,18 @@ namespace ProjectOni.Managers
         private void OnJumpCanceled(InputAction.CallbackContext obj) => JumpReleased?.Invoke();
         private void OnDodgeTriggered(InputAction.CallbackContext obj) => DodgePressed?.Invoke();
         private void OnInteractTriggered(InputAction.CallbackContext obj) => InteractPressed?.Invoke();
+        
         private void OnAttackTriggered(InputAction.CallbackContext obj) => AttackPressed?.Invoke();
+        private void OnAttackCanceled(InputAction.CallbackContext obj) => AttackReleased?.Invoke();
+        
         private void OnSecondaryAttackTriggered(InputAction.CallbackContext obj) => SecondaryAttackPressed?.Invoke();
+        private void OnSecondaryAttackCanceled(InputAction.CallbackContext obj) => SecondaryAttackReleased?.Invoke();
+        
         private void OnSpellQTriggered(InputAction.CallbackContext obj) => SpellQPressed?.Invoke();
+        private void OnSpellQCanceled(InputAction.CallbackContext obj) => SpellQReleased?.Invoke();
+        
         private void OnSpellETriggered(InputAction.CallbackContext obj) => SpellEPressed?.Invoke();
+        private void OnSpellECanceled(InputAction.CallbackContext obj) => SpellEReleased?.Invoke();
         
         private void OnToggleMenuTriggered(InputAction.CallbackContext obj) 
         {
