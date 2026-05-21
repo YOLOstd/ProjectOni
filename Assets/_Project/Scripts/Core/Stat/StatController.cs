@@ -100,8 +100,8 @@ namespace ProjectOni.Core
                 CalculateStat(type);
             }
 
-            // 3. Write networked health stats (owner/server only, dirty-checked)
-            if (_entityState != null && (_entityState.isOwner || _entityState.isServer))
+            // 3. Write networked health stats (owner only, dirty-checked)
+            if (_entityState != null && _entityState.isOwner)
             {
                 float newMax = Get(StatType.Health);
                 if (!Mathf.Approximately(_entityState.MaxHealth.value, newMax))

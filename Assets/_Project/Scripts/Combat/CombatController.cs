@@ -67,9 +67,7 @@ namespace ProjectOni.Combat
         private void RpcCancelVisuals()
         {
             if (_combatAnimator != null)
-            {
                 _combatAnimator.CancelVisuals();
-            }
         }
 
         protected override void OnSpawned()
@@ -230,17 +228,64 @@ namespace ProjectOni.Combat
 
             Debug.Log($"[CombatController] Action executed: {slot} on {gameObject.name}. LockTime: {result.GlobalLockTime}, AntiGravityTime: {result.AntiGravityTime}");
 
-            // Trigger Visuals for everyone
-            RpcPlayVisuals(result.Visuals, direction);
+            // Build a network-safe hint from the result. Asset refs (prefab, audio) are excluded —
+            // each client resolves them locally from their own copy of the ScriptableObject.
+            var hint = new NetworkedVisualHint
+            {
+                animationTrigger = result.Visuals.animationTrigger,
+                damage           = result.Visuals.damage,
+                spawnOffset      = result.Visuals.spawnOffset,
+                projectileSpeed  = result.Visuals.projectileSpeed,
+                lifetime         = result.Visuals.lifetime,
+                hitboxStartTime  = result.Visuals.hitboxStartTime,
+                hitboxDuration   = result.Visuals.hitboxDuration
+            };
+
+            // Single-step RPC: runLocally gives zero-latency on the caller,
+            // requireServer: false lets PurrNet relay to all other clients via the server.
+            RpcPlayVisuals(slot, direction, hint);
         }
 
         [ObserversRpc(runLocally: true, requireServer: false)]
-        private void RpcPlayVisuals(VisualRequest request, Vector2 direction)
+        private void RpcPlayVisuals(ActionSlot slot, Vector2 direction, NetworkedVisualHint hint)
         {
-            if (_combatAnimator != null)
+            if (_combatAnimator == null) return;
+            var (prefab, sfx, hitVfx) = GetLocalVisualRefs(slot);
+            var request = new VisualRequest
             {
-                _combatAnimator.PlayVisual(request, direction);
-            }
+                animationTrigger = hint.animationTrigger,
+                sfx              = sfx,
+                projectilePrefab = prefab,
+                projectileSpeed  = hint.projectileSpeed,
+                damage           = hint.damage,
+                spawnOffset      = hint.spawnOffset,
+                hitVFXPrefab     = hitVfx,
+                lifetime         = hint.lifetime,
+                hitboxStartTime  = hint.hitboxStartTime,
+                hitboxDuration   = hint.hitboxDuration
+            };
+            _combatAnimator.PlayVisual(request, direction);
+        }
+
+        /// <summary>
+        /// Resolves local Unity asset references for the given slot from the currently equipped item.
+        /// Called on every client independently — ScriptableObject data is identical on all machines.
+        /// </summary>
+        private (GameObject prefab, AudioClip sfx, GameObject hitVfx) GetLocalVisualRefs(ActionSlot slot)
+        {
+            var binding = _bindings.Find(b => b.slot == slot);
+            if (binding.equipmentSlot == null) return (null, null, null);
+
+            var item = _equipmentManager.GetItemInSlot(binding.equipmentSlot);
+            if (!item.IsValid) return (null, null, null);
+
+            var weapon = item.GetTrait<WeaponTrait>();
+            if (weapon?.attackData != null) return weapon.attackData.GetVisualRefs();
+
+            var spell = item.GetTrait<SpellTrait>();
+            if (spell?.spellData != null) return spell.spellData.GetVisualRefs();
+
+            return (null, null, null);
         }
     }
 }

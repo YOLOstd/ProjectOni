@@ -20,6 +20,15 @@ namespace ProjectOni.Combat.Data
             return baseDamage + Mathf.Max(0, level - 1) * damageGrowthPerLevel;
         }
 
+        /// <summary>
+        /// Returns the local Unity asset references used for visuals.
+        /// These cannot be serialized over the network. Each client calls this on their own
+        /// copy of the ScriptableObject to reconstruct a full VisualRequest after receiving
+        /// a NetworkedVisualHint via RPC.
+        /// </summary>
+        public virtual (GameObject projectilePrefab, AudioClip sfx, GameObject hitVFXPrefab) GetVisualRefs()
+            => (null, castSFX, hitVFXPrefab);
+
         // Implementation of IAttackBehavior
         public abstract AttackResult Execute(AttackContext ctx);
     }

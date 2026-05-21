@@ -31,6 +31,9 @@ namespace ProjectOni.Combat.Data
 
         private Dictionary<GameObject, ComboState> _states = new();
 
+        public override (GameObject projectilePrefab, AudioClip sfx, GameObject hitVFXPrefab) GetVisualRefs()
+            => (slashPrefab, castSFX, hitVFXPrefab);
+
         public override AttackResult Execute(AttackContext ctx)
         {
             // Get or create state for this caster

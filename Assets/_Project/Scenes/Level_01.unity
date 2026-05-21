@@ -7205,6 +7205,8 @@ GameObject:
   - component: {fileID: 1882646613}
   - component: {fileID: 1882646612}
   - component: {fileID: 1882646611}
+  - component: {fileID: 1882646615}
+  - component: {fileID: 1882646614}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -7271,6 +7273,40 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1882646614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1882646610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10c203c4afe5db0419c298e2aa3c4876, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Networking.NetworkAutoJoin
+  _roomCode: didjecte
+  _forceClientInEditor: 0
+  _checkParrelSync: 1
+  _checkCommandLine: 1
+--- !u!114 &1882646615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1882646610}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 332e746c3c3253246aacad4d5559f1fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: PurrNet.Runtime::PurrNet.Transports.PurrTransport
+  _masterServer: https://purrtransport.purrservers.com/
+  _roomName: didjecte
+  _region: france
+  _host: purrtransport-france.purrservers.com
+  _timeoutInSeconds: 5
+  _pollEventsInUpdate: 0
 --- !u!212 &1890282398 stripped
 SpriteRenderer:
   m_CorrespondingSourceObject: {fileID: 425583622954390990, guid: df2c8d551de761d4d8071bf3fae5a493, type: 3}

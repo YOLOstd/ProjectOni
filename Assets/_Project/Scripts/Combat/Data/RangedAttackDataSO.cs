@@ -13,6 +13,9 @@ namespace ProjectOni.Combat.Data
         [Header("Recovery Timing")]
         public float recoveryTime = 0.5f;
 
+        public override (GameObject projectilePrefab, AudioClip sfx, GameObject hitVFXPrefab) GetVisualRefs()
+            => (projectilePrefab, castSFX, hitVFXPrefab);
+
         public override AttackResult Execute(AttackContext ctx)
         {
             float lockTime = recoveryTime / Mathf.Max(0.1f, ctx.AttackSpeedMultiplier);

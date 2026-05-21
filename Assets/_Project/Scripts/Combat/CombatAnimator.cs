@@ -123,10 +123,30 @@ namespace ProjectOni.Combat
             {
                 bool isOwner = _identity != null && _identity.isOwner;
                 projectile.Initialize(direction, request.projectileSpeed, request.damage, isOwner, LayerMask.GetMask("Enemy"), request.hitVFXPrefab);
+
+                // Ghost mode: disable all physics colliders on non-owner machines.
+                if (!isOwner)
+                {
+                    foreach (var col in projGO.GetComponentsInChildren<Collider2D>())
+                        col.enabled = false;
+                }
             }
             else if (projGO.TryGetComponent(out Hitbox hitbox))
             {
-                hitbox.Initialize(request.damage, request.hitboxStartTime, request.hitboxDuration);
+                // Only activate the damage hitbox on the owning client.
+                // On remote clients the VFX (particle children) still play, but no collision damage fires.
+                bool isOwner = _identity != null && _identity.isOwner;
+                if (isOwner)
+                {
+                    hitbox.Initialize(request.damage, request.hitboxStartTime, request.hitboxDuration);
+                }
+                else
+                {
+                    // Ghost mode: ensure every collider on the prefab is disabled so nothing
+                    // triggers on the non-owner machine, even if the hitbox prefab had one enabled by default.
+                    foreach (var col in projGO.GetComponentsInChildren<Collider2D>())
+                        col.enabled = false;
+                }
                 float destroyTime = request.lifetime > 0 ? request.lifetime : 0.2f;
                 if (projGO.TryGetComponent<PooledVFX>(out var pooled))
                 {

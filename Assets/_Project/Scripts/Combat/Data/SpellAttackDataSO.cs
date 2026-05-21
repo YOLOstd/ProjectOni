@@ -14,6 +14,9 @@ namespace ProjectOni.Combat.Data
         [Header("Recovery Timing")]
         public float recoveryTime = 0.5f;
 
+        public override (GameObject projectilePrefab, AudioClip sfx, GameObject hitVFXPrefab) GetVisualRefs()
+            => (spellProjectilePrefab, castSFX, hitVFXPrefab);
+
         public override AttackResult Execute(AttackContext ctx)
         {
             // Here we could handle mana consumption logic if needed

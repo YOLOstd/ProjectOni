@@ -43,8 +43,8 @@ namespace ProjectOni.Core
                 _entityState.CurrentHealth.onChangedWithOld += OnCurrentHealthSync;
                 _entityState.MaxHealth.onChangedWithOld     += OnMaxHealthSync;
 
-                // Initialise on the owner (or server for enemies)
-                if (isOwner || isServer)
+                // Initialise on the owner
+                if (isOwner)
                 {
                     if (_entityState.MaxHealth.value <= 0f)
                     {
@@ -70,19 +70,19 @@ namespace ProjectOni.Core
 
         /// <summary>
         /// IDamageable entry point. Safe to call from any client —
-        /// will route through ServerRpc if the caller is not the owner/server.
+        /// will route through ServerRpc if the caller is not the owner.
         /// </summary>
         public void TakeDamage(float amount)
         {
             if (_entityState == null) return;
 
-            if (isOwner || isServer)
+            if (isOwner)
             {
                 ApplyDamage(amount);
             }
             else
             {
-                // Non-owner client (e.g. hitting an enemy) — ask the server
+                // Non-owner client (or server for a client-owned entity) — ask the server
                 ServerRequestDamage(amount);
             }
         }
@@ -90,7 +90,7 @@ namespace ProjectOni.Core
         public void Heal(float amount)
         {
             if (_entityState == null) return;
-            if (!isOwner && !isServer) return;
+            if (!isOwner) return;
             _entityState.CurrentHealth.value = Mathf.Min(Max, Current + amount);
         }
 
@@ -104,6 +104,23 @@ namespace ProjectOni.Core
 
         [ServerRpc(requireOwnership: false)]
         private void ServerRequestDamage(float amount)
+        {
+            if (isOwner)
+            {
+                ApplyDamage(amount);
+            }
+            else
+            {
+                // Target has a client owner. Forward the damage command to the owner.
+                if (owner.HasValue)
+                {
+                    TargetApplyDamage(owner.Value, amount);
+                }
+            }
+        }
+
+        [TargetRpc]
+        private void TargetApplyDamage(PlayerID target, float amount)
         {
             ApplyDamage(amount);
         }

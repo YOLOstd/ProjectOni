@@ -39,21 +39,6 @@ namespace ProjectOni.Player
             }
         }
 
-        private void OnEnable()
-        {
-            if (isSpawned && isOwner)
-            {
-                SubscribeEvents();
-            }
-        }
-
-        private void OnDisable()
-        {
-            if (isSpawned && isOwner)
-            {
-                UnsubscribeEvents();
-            }
-        }
 
         private void SubscribeEvents()
         {

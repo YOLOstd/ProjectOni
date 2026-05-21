@@ -127,14 +127,28 @@ namespace ProjectOni.Player
             
             HandleMovementStats();
             UpdateWallVisuals();
+
+            // Detect ground transitions on non-owners using synced animator parameters
+            if (!isOwner && _anim != null)
+            {
+                bool isCurrentGrounded = _anim.GetBool(GroundedBoolKey);
+                if (isCurrentGrounded != _grounded)
+                {
+                    if (!isCurrentGrounded)
+                    {
+                        if (_visualVelocity.y > 0.5f)
+                        {
+                            PlayJumpEffects();
+                        }
+                    }
+                    PlayGroundedEffects(isCurrentGrounded, Mathf.Abs(_visualVelocity.y));
+                }
+            }
         }
 
         private void UpdateWallVisuals()
         {
-            if (_player.isOwner)
-            {
-                SafeSetBool(WallSlidingKey, _player.IsWallSliding.value);
-            }
+            SafeSetBool(WallSlidingKey, _player.IsWallSliding.value);
         }
 
         private void OnStateChanged(PurrNet.StateMachine.StateNode prev, PurrNet.StateMachine.StateNode next)
@@ -185,21 +199,17 @@ namespace ProjectOni.Player
         private void SendJumpRpc()
         {
             if (_netAnimator != null) _netAnimator.SetTrigger(JumpKey);
-            RpcOnJumped();
+            PlayJumpEffects();
         }
 
         private void SendGroundedRpc(bool grounded, float impact)
         {
             if (grounded && _netAnimator != null) _netAnimator.SetTrigger(GroundedKey);
-            RpcOnGroundedChanged(grounded, impact);
+            PlayGroundedEffects(grounded, impact);
         }
 
-        [ObserversRpc(runLocally: true, requireServer: false)]
-        private void RpcOnJumped()
+        private void PlayJumpEffects()
         {
-            // Animator trigger handled by NetworkAnimator.SetTrigger on owner.
-            // This RPC now only handles side-effects.
-
             if (_grounded) // Avoid coyote particles if we're technically in air
             {
                 SetColor(_jumpParticles);
@@ -208,8 +218,7 @@ namespace ProjectOni.Player
             }
         }
 
-        [ObserversRpc(runLocally: true, requireServer: false)]
-        private void RpcOnGroundedChanged(bool grounded, float impact)
+        private void PlayGroundedEffects(bool grounded, float impact)
         {
             _grounded = grounded;
             
@@ -217,8 +226,6 @@ namespace ProjectOni.Player
             {
                 DetectGroundColor();
                 SetColor(_landParticles);
-
-                // Side-effects only. Triggers are handled via NetworkAnimator.
 
                 if (_source != null && _footsteps != null && _footsteps.Length > 0) 
                     _source.PlayOneShot(_footsteps[Random.Range(0, _footsteps.Length)]);

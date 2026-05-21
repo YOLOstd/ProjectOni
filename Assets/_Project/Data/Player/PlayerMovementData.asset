@@ -41,7 +41,7 @@ MonoBehaviour:
   WallJumpXForce: 8
   WallJumpLockTime: 0.1
   WallSlideSpeed: 5
-  DodgePower: 22
+  DodgePower: 30
   AirDodgePower: 18
   DodgeDuration: 0.12
   DodgeCooldown: 0.5
