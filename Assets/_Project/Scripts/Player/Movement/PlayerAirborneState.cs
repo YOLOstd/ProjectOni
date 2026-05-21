@@ -51,8 +51,24 @@ namespace ProjectOni.Player.Movement
         public override void StateFixedUpdate()
         {
             if (!isOwner) return;
-            Controller.HandleHorizontalMovement(ProjectOni.Managers.InputManager.Instance.MoveDirection.x);
-            Controller.HandleGravity();
+            
+            if (StateMachine.Combat != null && StateMachine.Combat.IsAntiGravityActive)
+            {
+                // During anti-gravity (aerial attack), we skip standard horizontal movement
+                // to prevent AirDeceleration from instantly killing our momentum.
+                // HandleAirborneAttackGravity applies a uniform 2D slow-mo drag instead.
+                Controller.HandleAirborneAttackGravity();
+            }
+            else
+            {
+                float inputX = ProjectOni.Managers.InputManager.Instance.MoveDirection.x;
+                if (StateMachine.Combat != null && StateMachine.Combat.IsGlobalLocked)
+                {
+                    inputX = 0f;
+                }
+                Controller.HandleHorizontalMovement(inputX);
+                Controller.HandleGravity();
+            }
         }
     }
 }

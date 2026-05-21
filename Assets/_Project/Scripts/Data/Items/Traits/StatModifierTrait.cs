@@ -5,7 +5,7 @@ using UnityEngine;
 namespace ProjectOni.Data
 {
     [Serializable]
-    public struct StatModifier
+    public struct TraitStatModifier
     {
         public StatType type;
         public float value;
@@ -15,7 +15,7 @@ namespace ProjectOni.Data
     [CreateAssetMenu(fileName = "New Stat Modifier Trait", menuName = "Project Oni/Traits/Stat Modifier")]
     public class StatModifierTrait : EquipmentTraitSO
     {
-        public List<StatModifier> modifiers = new List<StatModifier>();
+        public List<TraitStatModifier> modifiers = new List<TraitStatModifier>();
 
         public float GetBonus(StatType type, bool multiplier)
         {

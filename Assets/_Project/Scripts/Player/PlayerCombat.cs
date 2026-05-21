@@ -1,53 +1,116 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
-using ProjectOni.Data;
+using PurrNet;
 using ProjectOni.Combat;
+using ProjectOni.Managers;
 
 namespace ProjectOni.Player
 {
-    public class PlayerCombat : MonoBehaviour
+    public class PlayerCombat : NetworkBehaviour
     {
-        [Header("Attacking Settings")]
-        private Animator _animator;
-        private EquipmentManager _equipment;
-        private PlayerStats _stats;
+        private CombatController _combatController;
+        private PlayerController _playerController;
 
         private void Awake()
         {
-            _animator = GetComponent<Animator>();
-            _equipment = GetComponent<EquipmentManager>();
-            _stats = GetComponent<PlayerStats>();
+            _combatController = GetComponent<CombatController>();
+            if (_combatController == null) _combatController = GetComponentInChildren<CombatController>();
+            if (_combatController == null) _combatController = GetComponentInParent<CombatController>();
+
+            _playerController = GetComponent<PlayerController>();
+            if (_playerController == null) _playerController = GetComponentInChildren<PlayerController>();
+            if (_playerController == null) _playerController = GetComponentInParent<PlayerController>();
         }
 
-        // Action from PlayerInput
-        public void OnAttack(InputValue value)
+        protected override void OnSpawned()
         {
-            if (value.isPressed)
+            base.OnSpawned();
+            if (isOwner)
             {
-                PerformAttack();
+                SubscribeEvents();
             }
         }
 
-        private void PerformAttack()
+        protected override void OnDespawned(bool asServer)
         {
-            EquipmentInstance activeWeapon = _equipment.GetActiveWeapon();
-            if (!activeWeapon.IsValid) return;
-    
-            // Get the weapon trait to find the animation trigger
-            var weaponTrait = activeWeapon.GetTrait<WeaponTrait>();
-            string animName = (weaponTrait != null && !string.IsNullOrEmpty(weaponTrait.comboAnimationTrigger)) 
-                ? weaponTrait.comboAnimationTrigger 
-                : "Attack";
-
-            // Trigger animation
-            if (_animator != null)
+            base.OnDespawned(asServer);
+            if (isOwner)
             {
-                _animator.Play(animName);
+                UnsubscribeEvents();
             }
-    
-            // Damage logic (simplified - normally triggered via Animation Event or Hitbox control)
-            float damage = StatCalculator.CalculateFinalDamage(_stats.BaseDamage, new[] { activeWeapon });
-            Debug.Log($"Attacking with {activeWeapon.blueprint.itemName} dealing {damage} damage.");
+        }
+
+
+        private void SubscribeEvents()
+        {
+            var input = InputManager.Instance;
+            if (input != null)
+            {
+                input.AttackPressed += OnAttackPressed;
+                input.AttackReleased += OnAttackReleased;
+                
+                input.SecondaryAttackPressed += OnSecondaryAttackPressed;
+                input.SecondaryAttackReleased += OnSecondaryAttackReleased;
+                
+                input.SpellQPressed += OnSpellQPressed;
+                input.SpellQReleased += OnSpellQReleased;
+                
+                input.SpellEPressed += OnSpellEPressed;
+                input.SpellEReleased += OnSpellEReleased;
+            }
+        }
+
+        private void UnsubscribeEvents()
+        {
+            var input = InputManager.Instance;
+            if (input != null)
+            {
+                input.AttackPressed -= OnAttackPressed;
+                input.AttackReleased -= OnAttackReleased;
+                
+                input.SecondaryAttackPressed -= OnSecondaryAttackPressed;
+                input.SecondaryAttackReleased -= OnSecondaryAttackReleased;
+                
+                input.SpellQPressed -= OnSpellQPressed;
+                input.SpellQReleased -= OnSpellQReleased;
+                
+                input.SpellEPressed -= OnSpellEPressed;
+                input.SpellEReleased -= OnSpellEReleased;
+            }
+        }
+
+        private void OnAttackPressed() => OnInputDown(ActionSlot.Primary);
+        private void OnAttackReleased() => OnInputUp(ActionSlot.Primary);
+
+        private void OnSecondaryAttackPressed() => OnInputDown(ActionSlot.Secondary);
+        private void OnSecondaryAttackReleased() => OnInputUp(ActionSlot.Secondary);
+
+        private void OnSpellQPressed() => OnInputDown(ActionSlot.Spell1);
+        private void OnSpellQReleased() => OnInputUp(ActionSlot.Spell1);
+
+        private void OnSpellEPressed() => OnInputDown(ActionSlot.Spell2);
+        private void OnSpellEReleased() => OnInputUp(ActionSlot.Spell2);
+
+        private void OnInputDown(ActionSlot slot)
+        {
+            if (_combatController != null)
+            {
+                _combatController.OnInputDown(slot, GetAttackDirection());
+            }
+        }
+
+        private void OnInputUp(ActionSlot slot)
+        {
+            if (_combatController != null)
+            {
+                _combatController.OnInputUp(slot);
+            }
+        }
+
+        private Vector2 GetAttackDirection()
+        {
+            if (_playerController == null) return Vector2.right;
+            // Simple horizontal direction based on player facing
+            return new Vector2(_playerController.FacingDir, 0);
         }
     }
 }

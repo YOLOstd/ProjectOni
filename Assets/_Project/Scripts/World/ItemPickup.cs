@@ -2,13 +2,14 @@ using UnityEngine;
 using ProjectOni.Core;
 using ProjectOni.Data;
 using ProjectOni.Player;
+using PurrNet;
 
 namespace ProjectOni.World
 {
     /// <summary>
     /// Physical representation of an item in the game world that can be picked up.
     /// </summary>
-    public class ItemPickup : MonoBehaviour, IInteractable
+    public class ItemPickup : NetworkBehaviour, IInteractable
     {
         [SerializeField] private ItemData _item;
         [SerializeField] private SpriteRenderer _iconRenderer;
@@ -29,50 +30,47 @@ namespace ProjectOni.World
             gameObject.name = $"Pickup_{_item.itemName}";
         }
 
-        public void Interact()
+        public void Interact(GameObject interactor)
         {
-            Debug.Log("INTERACT");
-            if (_item == null) return;
-
-            var player = GameObject.FindGameObjectWithTag("Player");
-            if (player == null) return;
+            if (!isServer) return;
+            if (_item == null || interactor == null) return;
 
             bool handled = false;
 
             // 1. Try Auto-Equip if it's modular equipment
-            var eqManager = player.GetComponentInChildren<EquipmentManager>();
-            if (_item is EquipmentBlueprint blueprint && eqManager != null && blueprint.category != null)
+            var eqManager = interactor.GetComponentInChildren<EquipmentManager>();
+            if (_item is EquipmentBlueprint blueprint && eqManager != null)
             {
-                // Create a temporary instance with a random seed for now
+                // Create instance on server
                 var instance = new EquipmentInstance
                 {
                     blueprint = blueprint,
-                    itemLevel = 1, // Default level
+                    itemLevel = 1,
                     seed = UnityEngine.Random.Range(0, int.MaxValue)
                 };
 
-                // Auto-equip ONLY if there is a compatible empty slot
                 if (eqManager.EquipToFirstCompatibleSlot(instance))
                 {
                     handled = true;
-                    Debug.Log($"[ItemPickup] Auto-equipped: {_item.itemName}");
+                    Debug.Log($"[ItemPickup] Server auto-equipped: {_item.itemName} to {interactor.name}");
                 }
             }
 
             // 2. If not handled, add to bag
-            var inventory = player.GetComponentInChildren<PlayerInventory>();
+            var inventory = interactor.GetComponentInChildren<PlayerInventory>();
             if (!handled && inventory != null)
             {
                 if (inventory.AddToBag(_item))
                 {
                     handled = true;
-                    Debug.Log($"[ItemPickup] Added to bag: {_item.itemName}");
+                    Debug.Log($"[ItemPickup] Server added to bag: {_item.itemName} for {interactor.name}");
                 }
             }
 
             if (handled)
             {
-                Destroy(gameObject);
+                // Network-synced destruction (server calls Despawn on networked object)
+                Despawn();
             }
         }
 

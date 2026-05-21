@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using ProjectOni.Core;
 using ProjectOni.Data;
+using ProjectOni.Player;
 
 namespace ProjectOni.UI
 {
@@ -31,8 +32,10 @@ namespace ProjectOni.UI
             GameEvents.OnEquipmentSlotChanged -= HandleSlotChanged;
         }
 
-        private void HandleSlotChanged(EquipmentSlotDefinition slot, EquipmentInstance item)
+        private void HandleSlotChanged(EquipmentManager manager, EquipmentSlotDefinition slot, EquipmentInstance item)
         {
+            if (!manager.isOwner) return;
+
             foreach (var mapping in slotMappings)
             {
                 if (mapping.definition == slot)

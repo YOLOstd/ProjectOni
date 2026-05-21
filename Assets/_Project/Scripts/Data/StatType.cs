@@ -2,12 +2,34 @@ namespace ProjectOni.Data
 {
     public enum StatType
     {
+        // Defense
         Health,
+        Armor,
+        Evasion,
+
+        // Attack
         Attack,
-        Defense,
         AttackSpeed,
+        CastSpeed,
         CritChance,
         CritDamage,
-        Reach
+        Aoe,
+
+        // Misc
+        MoveSpeed,
+        DodgePower,
+        DodgeCooldown,
+
+        // Attributes
+        Strength,
+        Dexterity,
+        Intelligence
+    }
+
+    public enum ModType
+    {
+        Flat,
+        Increased,
+        More
     }
 }

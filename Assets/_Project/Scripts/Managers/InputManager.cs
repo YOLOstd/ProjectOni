@@ -10,15 +10,22 @@ namespace ProjectOni.Managers
         public static InputManager Instance { get; private set; }
 
         private PlayerInput _playerInput;
+        
+        // Gameplay Actions
         private InputAction _moveAction;
         private InputAction _jumpAction;
         private InputAction _dodgeAction;
-
         private InputAction _interactAction;
-        private InputAction _toggleMenuAction;
+        private InputAction _attackAction;
+        private InputAction _secondaryAttackAction;
+        private InputAction _spellQAction;
+        private InputAction _spellEAction;
+
+        // UI / Menu Actions
+        private InputAction _playerToggleMenuAction;
+        private InputAction _uiToggleMenuAction;
 
         public Vector2 MoveDirection { get; private set; }
-
         public bool IsJumpHeld => _jumpAction != null && _jumpAction.IsPressed();
         
         public event Action JumpPressed;
@@ -26,6 +33,14 @@ namespace ProjectOni.Managers
         public event Action DodgePressed;
         public event Action InteractPressed;
         public event Action MenuTogglePressed;
+        public event Action AttackPressed;
+        public event Action AttackReleased;
+        public event Action SecondaryAttackPressed;
+        public event Action SecondaryAttackReleased;
+        public event Action SpellQPressed;
+        public event Action SpellQReleased;
+        public event Action SpellEPressed;
+        public event Action SpellEReleased;
 
         private void Awake()
         {
@@ -42,10 +57,18 @@ namespace ProjectOni.Managers
             _moveAction = _playerInput.actions["Move"];
             _jumpAction = _playerInput.actions["Jump"];
             _dodgeAction = _playerInput.actions["Dodge"];
-
             _interactAction = _playerInput.actions.FindAction("Interact");
-            _toggleMenuAction = _playerInput.actions.FindAction("ToggleMenu");
-
+            _attackAction = _playerInput.actions.FindAction("Attack");
+            _secondaryAttackAction = _playerInput.actions.FindAction("SecondaryAttack");
+            _spellQAction = _playerInput.actions.FindAction("SpellQ");
+            _spellEAction = _playerInput.actions.FindAction("SpellE");
+            
+            // Explicitly cache the ToggleMenu action from BOTH maps
+            var playerMap = _playerInput.actions.FindActionMap("Player");
+            _playerToggleMenuAction = playerMap != null ? playerMap.FindAction("ToggleMenu") : null;
+            
+            var uiMap = _playerInput.actions.FindActionMap("UI");
+            _uiToggleMenuAction = uiMap != null ? uiMap.FindAction("ToggleMenu") : null;
         }
 
         private void OnEnable()
@@ -55,11 +78,37 @@ namespace ProjectOni.Managers
             if (_dodgeAction != null) _dodgeAction.performed += OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed += OnInteractTriggered;
             
-            if (_toggleMenuAction != null)
+            if (_attackAction != null)
             {
-                _toggleMenuAction.performed += OnToggleMenuTriggered;
-                _toggleMenuAction.Enable();
+                _attackAction.performed += OnAttackTriggered;
+                _attackAction.canceled += OnAttackCanceled;
             }
+            if (_secondaryAttackAction != null)
+            {
+                _secondaryAttackAction.performed += OnSecondaryAttackTriggered;
+                _secondaryAttackAction.canceled += OnSecondaryAttackCanceled;
+            }
+            if (_spellQAction != null)
+            {
+                _spellQAction.performed += OnSpellQTriggered;
+                _spellQAction.canceled += OnSpellQCanceled;
+            }
+            if (_spellEAction != null)
+            {
+                _spellEAction.performed += OnSpellETriggered;
+                _spellEAction.canceled += OnSpellECanceled;
+            }
+            
+            // Subscribe safely. DO NOT call .Enable() manually here!
+            if (_playerToggleMenuAction != null)
+                _playerToggleMenuAction.performed += OnToggleMenuTriggered;
+            else
+                Debug.LogError("InputManager: 'ToggleMenu' missing in 'Player' map!");
+
+            if (_uiToggleMenuAction != null)
+                _uiToggleMenuAction.performed += OnToggleMenuTriggered;
+            else
+                Debug.LogError("InputManager: 'ToggleMenu' missing in 'UI' map!");
         }
 
         private void OnDisable()
@@ -72,8 +121,31 @@ namespace ProjectOni.Managers
             if (_dodgeAction != null) _dodgeAction.performed -= OnDodgeTriggered;
             if (_interactAction != null) _interactAction.performed -= OnInteractTriggered;
             
-            if (_toggleMenuAction != null)
-                _toggleMenuAction.performed -= OnToggleMenuTriggered;
+            if (_attackAction != null)
+            {
+                _attackAction.performed -= OnAttackTriggered;
+                _attackAction.canceled -= OnAttackCanceled;
+            }
+            if (_secondaryAttackAction != null)
+            {
+                _secondaryAttackAction.performed -= OnSecondaryAttackTriggered;
+                _secondaryAttackAction.canceled -= OnSecondaryAttackCanceled;
+            }
+            if (_spellQAction != null)
+            {
+                _spellQAction.performed -= OnSpellQTriggered;
+                _spellQAction.canceled -= OnSpellQCanceled;
+            }
+            if (_spellEAction != null)
+            {
+                _spellEAction.performed -= OnSpellETriggered;
+                _spellEAction.canceled -= OnSpellECanceled;
+            }
+            
+            if (_playerToggleMenuAction != null)
+                _playerToggleMenuAction.performed -= OnToggleMenuTriggered;
+            if (_uiToggleMenuAction != null)
+                _uiToggleMenuAction.performed -= OnToggleMenuTriggered;
         }
 
         private void Start()
@@ -84,26 +156,26 @@ namespace ProjectOni.Managers
         private void Update()
         {
             if (_moveAction == null) return;
-            
             MoveDirection = _moveAction.ReadValue<Vector2>();
-
-
-            if (MoveDirection != Vector2.zero)
-            {
-                // Debug.Log($"InputManager: Moving {MoveDirection}");
-            }
         }
 
-        private void OnJumpTriggered(InputAction.CallbackContext obj) 
-        {
-            JumpPressed?.Invoke();
-        }
+        private void OnJumpTriggered(InputAction.CallbackContext obj) => JumpPressed?.Invoke();
         private void OnJumpCanceled(InputAction.CallbackContext obj) => JumpReleased?.Invoke();
-        private void OnDodgeTriggered(InputAction.CallbackContext obj) 
-        {
-            DodgePressed?.Invoke();
-        }
+        private void OnDodgeTriggered(InputAction.CallbackContext obj) => DodgePressed?.Invoke();
         private void OnInteractTriggered(InputAction.CallbackContext obj) => InteractPressed?.Invoke();
+        
+        private void OnAttackTriggered(InputAction.CallbackContext obj) => AttackPressed?.Invoke();
+        private void OnAttackCanceled(InputAction.CallbackContext obj) => AttackReleased?.Invoke();
+        
+        private void OnSecondaryAttackTriggered(InputAction.CallbackContext obj) => SecondaryAttackPressed?.Invoke();
+        private void OnSecondaryAttackCanceled(InputAction.CallbackContext obj) => SecondaryAttackReleased?.Invoke();
+        
+        private void OnSpellQTriggered(InputAction.CallbackContext obj) => SpellQPressed?.Invoke();
+        private void OnSpellQCanceled(InputAction.CallbackContext obj) => SpellQReleased?.Invoke();
+        
+        private void OnSpellETriggered(InputAction.CallbackContext obj) => SpellEPressed?.Invoke();
+        private void OnSpellECanceled(InputAction.CallbackContext obj) => SpellEReleased?.Invoke();
+        
         private void OnToggleMenuTriggered(InputAction.CallbackContext obj) 
         {
             MenuTogglePressed?.Invoke();
@@ -111,13 +183,11 @@ namespace ProjectOni.Managers
 
         public void EnableGameControls() 
         {
-            Debug.Log("InputManager: Switching to 'Player' action map.");
             _playerInput.SwitchCurrentActionMap("Player"); 
         }
 
         public void EnableMenuControls() 
         {
-            Debug.Log("InputManager: Switching to 'UI' action map.");
             _playerInput.SwitchCurrentActionMap("UI");
         }
     }

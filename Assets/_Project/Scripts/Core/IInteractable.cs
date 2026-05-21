@@ -8,7 +8,7 @@ namespace ProjectOni.Core
         /// <summary>
         /// Logic to execute when the player interacts with this object.
         /// </summary>
-        void Interact();
+        void Interact(UnityEngine.GameObject interactor);
 
         /// <summary>
         /// Text to display in the UI when the player is near this object.

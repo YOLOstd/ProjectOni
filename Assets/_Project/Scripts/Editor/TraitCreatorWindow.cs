@@ -24,11 +24,40 @@ namespace ProjectOni.Editor
         private void OnEnable()
         {
             // Find all non-abstract types that inherit from EquipmentTraitSO
-            _traitTypes = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(s => s.GetTypes())
-                .Where(p => typeof(EquipmentTraitSO).IsAssignableFrom(p) && !p.IsAbstract)
-                .ToArray();
+            var traitTypesList = new System.Collections.Generic.List<Type>();
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    var types = assembly.GetTypes();
+                    foreach (var type in types)
+                    {
+                        if (type != null && typeof(EquipmentTraitSO).IsAssignableFrom(type) && !type.IsAbstract)
+                        {
+                            traitTypesList.Add(type);
+                        }
+                    }
+                }
+                catch (System.Reflection.ReflectionTypeLoadException e)
+                {
+                    if (e.Types != null)
+                    {
+                        foreach (var type in e.Types)
+                        {
+                            if (type != null && typeof(EquipmentTraitSO).IsAssignableFrom(type) && !type.IsAbstract)
+                            {
+                                traitTypesList.Add(type);
+                            }
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore assemblies that cannot be queried
+                }
+            }
 
+            _traitTypes = traitTypesList.ToArray();
             _traitTypeNames = _traitTypes.Select(t => t.Name).ToArray();
         }
 

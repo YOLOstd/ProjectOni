@@ -2,6 +2,8 @@ using UnityEngine;
 using System;
 using PurrNet;
 using PurrNet.StateMachine;
+using ProjectOni.Combat;
+using ProjectOni.Player;
 
 namespace ProjectOni.Player.Movement
 {
@@ -20,6 +22,8 @@ namespace ProjectOni.Player.Movement
         public PlayerMoveState MoveState { get; private set; }
         public PlayerAirborneState AirborneState { get; private set; }
         public PlayerDodgeState DodgeState { get; private set; }
+        public CombatController Combat { get; private set; }
+        public DodgeController Dodge { get; private set; }
 
         public event Action<StateNode> StateChanged;
         
@@ -35,11 +39,19 @@ namespace ProjectOni.Player.Movement
             if (Animator == null) Animator = GetComponentInChildren<Animator>();
             if (machine == null) machine = GetComponent<PurrNet.StateMachine.StateMachine>();
 
+            Combat = GetComponent<CombatController>();
+            if (Combat == null) Combat = GetComponentInParent<CombatController>();
+            if (Combat == null) Combat = GetComponentInChildren<CombatController>();
+
             // Find States
             IdleState = GetComponent<PlayerIdleState>();
             MoveState = GetComponent<PlayerMoveState>();
             AirborneState = GetComponent<PlayerAirborneState>();
             DodgeState = GetComponent<PlayerDodgeState>();
+
+            Dodge = GetComponent<DodgeController>();
+            if (Dodge == null) Dodge = GetComponentInChildren<DodgeController>();
+            if (Dodge == null) Dodge = GetComponentInParent<DodgeController>();
         }
 
         protected override void OnSpawned()
@@ -101,7 +113,7 @@ namespace ProjectOni.Player.Movement
         private void Update()
         {
             if (!isOwner) return;
-            Controller.UpdateDodgeCooldown();
+            if (Dodge != null) Dodge.UpdateCooldown();
         }
 
         private void OnInternalStateChanged(StateNode previousState, StateNode newState)
@@ -113,6 +125,8 @@ namespace ProjectOni.Player.Movement
 
         private void OnJumpPressed()
         {
+            if (Combat != null && Combat.IsGlobalLocked) return;
+
             if (Controller.IsOnWall && !Controller.IsGrounded)
             {
                 Controller.ExecuteWallJump(Controller.WallDir);
@@ -131,7 +145,7 @@ namespace ProjectOni.Player.Movement
 
         private void OnDodgePressed()
         {
-            if (Controller.CanDodge)
+            if (Dodge != null && Dodge.CanDodge)
             {
                 machine.SetState(DodgeState);
             }

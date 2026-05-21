@@ -10,9 +10,10 @@ namespace ProjectOni.Player
     /// </summary>
     public class PlayerAnimator : NetworkBehaviour
     {
-        [Header("References")] [SerializeField]
+        [SerializeField]
         private Animator _anim;
 
+        [SerializeField] private NetworkAnimator _netAnimator;
         [SerializeField] private SpriteRenderer _sprite;
 
         [Header("Settings")] [SerializeField, Range(1f, 3f)]
@@ -42,6 +43,8 @@ namespace ProjectOni.Player
             _player = GetComponentInParent<PlayerController>();
             _stateMachine = GetComponentInParent<ProjectOni.Player.Movement.PlayerMovementStateMachine>();
             _equipment = GetComponentInParent<EquipmentManager>();
+
+            if (_netAnimator == null) _netAnimator = GetComponentInChildren<NetworkAnimator>();
         }
 
         protected override void OnSpawned()
@@ -124,12 +127,28 @@ namespace ProjectOni.Player
             
             HandleMovementStats();
             UpdateWallVisuals();
+
+            // Detect ground transitions on non-owners using synced animator parameters
+            if (!isOwner && _anim != null)
+            {
+                bool isCurrentGrounded = _anim.GetBool(GroundedBoolKey);
+                if (isCurrentGrounded != _grounded)
+                {
+                    if (!isCurrentGrounded)
+                    {
+                        if (_visualVelocity.y > 0.5f)
+                        {
+                            PlayJumpEffects();
+                        }
+                    }
+                    PlayGroundedEffects(isCurrentGrounded, Mathf.Abs(_visualVelocity.y));
+                }
+            }
         }
 
         private void UpdateWallVisuals()
         {
             SafeSetBool(WallSlidingKey, _player.IsWallSliding.value);
-            SafeSetBool(DodgingKey, _stateMachine.machine.currentStateNode is ProjectOni.Player.Movement.PlayerDodgeState);
         }
 
         private void OnStateChanged(PurrNet.StateMachine.StateNode prev, PurrNet.StateMachine.StateNode next)
@@ -165,30 +184,32 @@ namespace ProjectOni.Player
 
             var velocity = _player.isOwner ? _player.CurrentVelocity : _visualVelocity;
 
-            // MoveSpeed for Idle -> Run transition
-            SafeSetFloat(MoveSpeedKey, Mathf.Abs(velocity.x));
-            
-            // VerticalVelocity for Jump -> Fall transition
-            SafeSetFloat(VerticalVelocityKey, velocity.y);
-
-            // Keep IdleSpeed for potential animation variance
-            SafeSetFloat(IdleSpeedKey, Mathf.Lerp(1, _maxIdleSpeed, inputStrength));
+            if (_player.isOwner)
+            {
+                SafeSetFloat(MoveSpeedKey, inputStrength);
+                SafeSetFloat(VerticalVelocityKey, velocity.y);
+                SafeSetBool(GroundedBoolKey, _player.IsGrounded);
+                SafeSetFloat(IdleSpeedKey, Mathf.Lerp(1, _maxIdleSpeed, inputStrength));
+            }
 
             if (_moveParticles != null) 
                 _moveParticles.transform.localScale = Vector3.MoveTowards(_moveParticles.transform.localScale, Vector3.one * inputStrength, 2 * Time.deltaTime);
         }
 
-        private void SendJumpRpc() => RpcOnJumped();
-        private void SendGroundedRpc(bool grounded, float impact) => RpcOnGroundedChanged(grounded, impact);
-
-        [ObserversRpc(runLocally: true, requireServer: false)]
-        private void RpcOnJumped()
+        private void SendJumpRpc()
         {
-            // Force state consistency
-            SafeSetTrigger(JumpKey);
-            SafeSetBool(GroundedBoolKey, false); // Ensure we switch to airborne visuals immediately
-            SafeResetTrigger(GroundedKey);      // Cancel any pending landing triggers
+            if (_netAnimator != null) _netAnimator.SetTrigger(JumpKey);
+            PlayJumpEffects();
+        }
 
+        private void SendGroundedRpc(bool grounded, float impact)
+        {
+            if (grounded && _netAnimator != null) _netAnimator.SetTrigger(GroundedKey);
+            PlayGroundedEffects(grounded, impact);
+        }
+
+        private void PlayJumpEffects()
+        {
             if (_grounded) // Avoid coyote particles if we're technically in air
             {
                 SetColor(_jumpParticles);
@@ -197,26 +218,14 @@ namespace ProjectOni.Player
             }
         }
 
-        [ObserversRpc(runLocally: true, requireServer: false)]
-        private void RpcOnGroundedChanged(bool grounded, float impact)
+        private void PlayGroundedEffects(bool grounded, float impact)
         {
             _grounded = grounded;
-            SafeSetBool(GroundedBoolKey, grounded);
             
             if (grounded)
             {
                 DetectGroundColor();
                 SetColor(_landParticles);
-
-                // If we land, we should definitely NOT be starting a jump animation from an old trigger
-                SafeResetTrigger(JumpKey);
-                
-                // Only trigger the "Land" transition if we aren't immediately jumping again
-                // This prevents the clunky "Falling -> Jump" pop when landing with a buffered jump
-                if (_player.CurrentVelocity.y <= 0.1f)
-                {
-                    SafeSetTrigger(GroundedKey);
-                }
 
                 if (_source != null && _footsteps != null && _footsteps.Length > 0) 
                     _source.PlayOneShot(_footsteps[Random.Range(0, _footsteps.Length)]);
@@ -273,8 +282,23 @@ namespace ProjectOni.Player
             }
 
             // Only spawn if new item is valid and has a prefab
-            if (!newVal.IsValid || newVal.blueprint == null || newVal.blueprint.visualPrefab == null)
+            if (!newVal.IsValid)
+            {
+                Debug.Log($"[PlayerAnimator] Weapon visual updated to invalid/empty for {gameObject.name}");
                 return;
+            }
+
+            if (newVal.blueprint == null)
+            {
+                Debug.LogError($"[PlayerAnimator] FAILED to sync EquipmentBlueprint! Is it in a Resources folder? {gameObject.name}");
+                return;
+            }
+
+            if (newVal.blueprint.visualPrefab == null)
+            {
+                Debug.LogWarning($"[PlayerAnimator] Weapon {newVal.blueprint.itemName} has no visual prefab!");
+                return;
+            }
 
             if (_weaponHoldPoint == null)
             {
@@ -287,7 +311,7 @@ namespace ProjectOni.Player
             _spawnedWeaponVisual.transform.localPosition = Vector3.zero;
             _spawnedWeaponVisual.transform.localRotation = Quaternion.identity;
             
-            Debug.Log($"[PlayerAnimator] Updated weapon visual to: {newVal.blueprint.itemName}");
+            Debug.Log($"[PlayerAnimator] Visual SPAWNED: {newVal.blueprint.itemName} on {gameObject.name} (isOwner: {isOwner})");
         }
 
         private static readonly int GroundedKey = Animator.StringToHash("Grounded");

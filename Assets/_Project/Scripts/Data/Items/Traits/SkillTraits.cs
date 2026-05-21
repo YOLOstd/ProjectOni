@@ -31,4 +31,24 @@ namespace ProjectOni.Data
             return $"Passive: {triggerCondition}{chanceText}";
         }
     }
+
+    [CreateAssetMenu(fileName = "New Spell Trait", menuName = "Project Oni/Traits/Spell Trait")]
+    public class SpellTrait : EquipmentTraitSO
+    {
+        [Header("Spell Skill Conduit")]
+        public int skillLevel = 1;
+        public ProjectOni.Combat.SpellSkill spellSkill;
+
+        public override string GetDescription()
+        {
+            if (spellSkill == null) return "Spell: None";
+            if (spellSkill.startingNode == null) return $"{spellSkill.skillName} (Lvl {skillLevel})\nNo spell attacks assigned.";
+            
+            float currentDmg = spellSkill.startingNode.visualData.damage;
+            return $"{spellSkill.skillName} (Lvl {skillLevel})\n" +
+                   $"Dmg: {currentDmg}\n" +
+                   $"Mana: {spellSkill.manaCost} | CD: {spellSkill.cooldown}s\n" +
+                   $"Duration: {spellSkill.startingNode.totalDuration}s";
+        }
+    }
 }

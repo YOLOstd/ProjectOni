@@ -9,23 +9,30 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5071439d18064c458cdb38eb2a2c500, type: 3}
+  m_Script: {fileID: 11500000, guid: af164a8743e6d404cada6f9230bd8699, type: 3}
   m_Name: Katana
-  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Data.EquipmentBlueprint
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Data.WeaponBlueprint
   itemName: Rusted Katana
   icon: {fileID: -3753825769889500098, guid: 6b2dbd28521a6394cbeed587496e457d, type: 3}
   type: 0
   category: {fileID: 11400000, guid: 8437866aa7aaf324eb24409586011749, type: 2}
   baseStats:
-  - type: 1
-    value: 10
   - type: 3
-    value: 0.7
+    value: 10
+    growthPerLevel: 5
+    isMultiplier: 0
   - type: 4
+    value: 0.7
+    growthPerLevel: 0
+    isMultiplier: 0
+  - type: 5
     value: 0.05
-  - type: 5
+    growthPerLevel: 0
+    isMultiplier: 0
+  - type: 6
     value: 1.5
-  - type: 5
-    value: 1.5
+    growthPerLevel: 0
+    isMultiplier: 0
   traitLootTable: {fileID: 11400000, guid: 2370904a446786a459ad887b4c4aef79, type: 2}
   visualPrefab: {fileID: 4992087957761971321, guid: bab590b0d71a70244bc394cc78c0d4b3, type: 3}
+  weaponTrait: {fileID: 11400000, guid: 8cdf293be52eecc4db14afcdd501c1be, type: 2}

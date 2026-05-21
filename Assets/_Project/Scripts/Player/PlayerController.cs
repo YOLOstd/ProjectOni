@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using PurrNet;
+using ProjectOni.Core;
+using ProjectOni.UI;
 
 namespace ProjectOni.Player
 {
@@ -13,6 +15,7 @@ namespace ProjectOni.Player
         
         private Rigidbody2D _rb;
         private Vector2 _frameVelocity;
+        private Vector2 _externalVelocity;
 
         public TarodevController.PlayerMovementData Stats => _stats;
         public Vector2 CurrentVelocity => _frameVelocity;
@@ -27,7 +30,6 @@ namespace ProjectOni.Player
         private float _frameLeftGrounded = float.MinValue;
         private bool _coyoteUsable;
         private float _wallJumpUnlockTime;
-        private bool _hasAirDodged;
 
         public bool IsGrounded => _grounded;
         public bool IsOnWall => _onWall;
@@ -45,11 +47,24 @@ namespace ProjectOni.Player
         public event Action Jumped;
         #endregion
 
-        #region Dodge Data
-        public bool CanDodge { get; private set; } = true;
-        private float _dodgeCooldownTimer;
-        private Vector2 _dodgeDir;
-        private float _activeDodgePower;
+        #region Dodge API & Physics Boundary
+        public void SetVelocity(Vector2 velocity) => _frameVelocity = velocity;
+        public Vector2 GetVelocity() => _frameVelocity;
+        public void TeleportTo(Vector2 targetPosition) => transform.position = targetPosition;
+
+        /// <summary>
+        /// Apply an external force impulse (knockback, conveyor, etc).
+        /// X bypasses the hard-zero stop and decays via GroundDeceleration.
+        /// Y goes into the main velocity lane so gravity handles the arc naturally.
+        /// </summary>
+        public void AddExternalForce(Vector2 force)
+        {
+            // X goes into the external lane to bypass the hard-zero stop
+            _externalVelocity.x += force.x;
+            
+            // Y goes directly into frame velocity so gravity handles the arc naturally
+            _frameVelocity.y += force.y;
+        }
         #endregion
 
         private void Awake()
@@ -62,14 +77,47 @@ namespace ProjectOni.Player
         protected override void OnSpawned()
         {
             base.OnSpawned();
+            
             if (!isOwner)
             {
+                Debug.Log($"[PlayerController] Remote player spawned. isOwner: false");
                 _rb.bodyType = RigidbodyType2D.Kinematic;
                 _rb.linearVelocity = Vector2.zero;
                 var vcam = GetComponentInChildren<Unity.Cinemachine.CinemachineCamera>();
                 if (vcam != null)
                 {
                     vcam.enabled = false;
+                }
+            }
+            else
+            {
+                Debug.Log($"[PlayerController] Local owner spawned. isOwner: true. Resolving components in children...");
+                
+                var entityState = GetComponentInChildren<EntityState>();
+                var health      = GetComponentInChildren<HealthComponent>();
+                var stats       = GetComponentInChildren<StatController>();
+                var equipment   = GetComponentInChildren<EquipmentManager>();
+
+                Debug.Log($"[PlayerController] Resolved components: EntityState={entityState != null}, HealthComponent={health != null}, StatController={stats != null}, EquipmentManager={equipment != null}");
+
+                if (stats != null)
+                {
+                    Debug.Log("[PlayerController] Initializing StatController with EntityState.");
+                    stats.Initialize(entityState);
+                }
+                else
+                {
+                    Debug.LogError("[PlayerController] StatController was not found in children!");
+                }
+
+                if (HUDManager.Instance != null)
+                {
+                    Debug.Log("[PlayerController] Binding HUD to local player components.");
+                    HUDManager.Instance.BindLocalPlayer(health, stats, equipment);
+                }
+                else
+                {
+                    Debug.LogWarning("[PlayerController] HUDManager.Instance is null when spawning local player!");
                 }
             }
         }
@@ -79,6 +127,7 @@ namespace ProjectOni.Player
             if (!isOwner) return;
 
             CheckCollisions();
+            DecayExternalVelocity();
             
             // Note: Movement logic is now driven by the State Machine calling methods here
             ApplyMovement();
@@ -102,8 +151,6 @@ namespace ProjectOni.Player
             {
                 _grounded = true;
                 _coyoteUsable = true;
-                CanDodge = true;
-                _hasAirDodged = false;
                 AirJumpsRemaining = _stats.MaxAirJumps;
                 GroundedChanged?.Invoke(true, Mathf.Abs(_frameVelocity.y));
             }
@@ -127,8 +174,14 @@ namespace ProjectOni.Player
             
             if (inputX == 0)
             {
-                float deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
-                _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, deceleration * Time.fixedDeltaTime);
+                if (_grounded)
+                {
+                    _frameVelocity.x = 0f; // Absolute zero — no player-driven slide
+                }
+                else
+                {
+                    _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, _stats.AirDeceleration * Time.fixedDeltaTime);
+                }
             }
             else
             {
@@ -137,6 +190,12 @@ namespace ProjectOni.Player
                 float targetX = Mathf.Sign(inputX);
                 _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, targetX * speed, _stats.Acceleration * Time.fixedDeltaTime);
             }
+        }
+
+        public void ApplyAttackLunge(float lungeForce)
+        {
+            // Push the player forward in the direction they are facing
+            _frameVelocity.x = _facingDir.value * lungeForce;
         }
 
         public void HandleGravity()
@@ -153,6 +212,29 @@ namespace ProjectOni.Player
             {
                 // Simple falling gravity. Jump cut is handled by ApplyJumpCut()
                 _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, _stats.FallAcceleration * Time.fixedDeltaTime);
+            }
+        }
+
+        public void OnAirborneAttackInitiated()
+        {
+            // Removed instant vertical velocity dampening.
+            // Slow-mo trajectory is now handled dynamically in HandleAirborneAttackGravity.
+        }
+
+        public void HandleAirborneAttackGravity()
+        {
+            if (_grounded && _frameVelocity.y <= 0f)
+            {
+                _frameVelocity.y = _stats.GroundingForce;
+            }
+            else
+            {
+                // Smoothly drag both horizontal and vertical velocity to simulate "slow mo" air resistance.
+                // This creates a smooth slowdown that preserves the original direction/arc.
+                _frameVelocity = Vector2.Lerp(_frameVelocity, Vector2.zero, _stats.AirborneAttackDrag * Time.fixedDeltaTime);
+        
+                // Accelerate downwards at a gentle pace towards a floaty fall speed ceiling
+                _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.AirborneAttackMaxFallSpeed, _stats.AirborneAttackFallAcceleration * Time.fixedDeltaTime);
             }
         }
 
@@ -193,50 +275,18 @@ namespace ProjectOni.Player
             _frameVelocity.y *= _stats.JumpCutMultiplier;
         }
 
-        public void InitiateDodge(Vector2 inputDir)
-        {
-            CanDodge = false;
-            _dodgeCooldownTimer = _stats.DodgeCooldown;
-            
-            if (!_grounded) _hasAirDodged = true;
-
-            // If no input, dodge in forward direction
-            _dodgeDir = inputDir != Vector2.zero ? inputDir.normalized : new Vector2(_facingDir.value, 0);
-            
-            _activeDodgePower = _grounded ? _stats.DodgePower : _stats.AirDodgePower;
-            _frameVelocity = _dodgeDir * _activeDodgePower;
-        }
-
-        public void HandleDodgeMovement()
-        {
-            // Maintain dodge velocity during the state
-            _frameVelocity = _dodgeDir * _activeDodgePower;
-        }
-
-        public void EndDodge()
-        {
-            if (!_grounded)
-            {
-                _hasAirDodged = true;
-                _frameVelocity.x = Mathf.Clamp(_frameVelocity.x, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
-                _frameVelocity.y = Mathf.Clamp(_frameVelocity.y, -_stats.DodgeEndSpeed, _stats.DodgeEndSpeed);
-            }
-        }
-
-        public void UpdateDodgeCooldown()
-        {
-            if (_dodgeCooldownTimer > 0)
-            {
-                _dodgeCooldownTimer -= Time.deltaTime;
-                if (_dodgeCooldownTimer <= 0)
-                {
-                    if (_grounded || !_hasAirDodged) CanDodge = true;
-                }
-            }
-        }
-
         #endregion
 
-        private void ApplyMovement() => _rb.linearVelocity = _frameVelocity;
+        private void DecayExternalVelocity()
+        {
+            // Only decay X. Gravity naturally handles the Y axis.
+            float decelX = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
+            _externalVelocity.x = Mathf.MoveTowards(_externalVelocity.x, 0, decelX * Time.fixedDeltaTime);
+            
+            // Ensure Y is strictly zeroed so it never interferes with gravity
+            _externalVelocity.y = 0f;
+        }
+
+        private void ApplyMovement() => _rb.linearVelocity = _frameVelocity + _externalVelocity;
     }
 }

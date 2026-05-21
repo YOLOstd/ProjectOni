@@ -28,7 +28,14 @@ namespace ProjectOni.Player.Movement
         public override void StateFixedUpdate()
         {
             if (!isOwner) return;
-            Controller.HandleHorizontalMovement(ProjectOni.Managers.InputManager.Instance.MoveDirection.x);
+            
+            float inputX = ProjectOni.Managers.InputManager.Instance.MoveDirection.x;
+            if (StateMachine.Combat != null && StateMachine.Combat.IsGlobalLocked)
+            {
+                inputX = 0f;
+            }
+
+            Controller.HandleHorizontalMovement(inputX);
         }
     }
 }

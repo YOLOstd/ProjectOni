@@ -90,5 +90,15 @@ namespace TarodevController
 
         [Tooltip("The maximum speed preserved after an air dodge ends")]
         public float DodgeEndSpeed = 15f;
+
+        [Header("AIRBORNE ATTACK MOMENTUM DAMPING")]
+        [Tooltip("The continuous drag applied to both X and Y velocity during an aerial attack, creating a slow-mo trajectory effect.")]
+        public float AirborneAttackDrag = 5f;
+
+        [Tooltip("The maximum fall speed ceiling during the swing lock.")]
+        public float AirborneAttackMaxFallSpeed = 4f;
+
+        [Tooltip("The gentle gravity acceleration applied during the swing.")]
+        public float AirborneAttackFallAcceleration = 20f;
     }
 }

@@ -17,7 +17,15 @@ namespace ProjectOni.Player.Movement
             // Physics (Owner only)
             if (isOwner)
             {
-                Controller.InitiateDodge(ProjectOni.Managers.InputManager.Instance.MoveDirection);
+                if (StateMachine.Combat != null)
+                {
+                    StateMachine.Combat.CancelGlobalLock();
+                }
+
+                if (StateMachine.Dodge != null)
+                {
+                    StateMachine.Dodge.Initiate(ProjectOni.Managers.InputManager.Instance.MoveDirection);
+                }
             }
         }
 
@@ -38,14 +46,20 @@ namespace ProjectOni.Player.Movement
         public override void StateFixedUpdate()
         {
             if (!isOwner) return;
-            Controller.HandleDodgeMovement();
+            if (StateMachine.Dodge != null)
+            {
+                StateMachine.Dodge.HandleMovement();
+            }
         }
 
         public override void Exit()
         {
             if (isOwner)
             {
-                Controller.EndDodge();
+                if (StateMachine.Dodge != null)
+                {
+                    StateMachine.Dodge.End();
+                }
             }
         }
     }

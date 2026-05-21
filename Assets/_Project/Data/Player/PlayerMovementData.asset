@@ -25,8 +25,7 @@ MonoBehaviour:
   VerticalDeadZoneThreshold: 0.3
   HorizontalDeadZoneThreshold: 0.1
   MaxSpeed: 10
-  CrouchSpeedModifier: 0.5
-  Acceleration: 120
+  Acceleration: 500
   GroundDeceleration: 65
   AirDeceleration: 30
   GroundingForce: -1.5
@@ -42,8 +41,11 @@ MonoBehaviour:
   WallJumpXForce: 8
   WallJumpLockTime: 0.1
   WallSlideSpeed: 5
-  DodgePower: 22
+  DodgePower: 30
   AirDodgePower: 18
   DodgeDuration: 0.12
   DodgeCooldown: 0.5
   DodgeEndSpeed: 15
+  AirborneAttackDrag: 6
+  AirborneAttackMaxFallSpeed: 10
+  AirborneAttackFallAcceleration: 2
