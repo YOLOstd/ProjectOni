@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02d2bed2b12067243986ae77c274dd76, type: 3}
+  m_Name: GhoulData
+  m_EditorClassIdentifier: Assembly-CSharp::ProjectOni.Data.EnemyDataSO
+  displayName: Ghoul
+  baseStats: {fileID: 11400000, guid: 213bd3ec5f79c6046b0cb1e28e4eb575, type: 2}
+  attackTree: {fileID: 11400000, guid: e418d0e6217114a49ab6c968496648a4, type: 2}
+  aggroRange: 8
+  attackRange: 2
+  patrolRadius: 4
+  knockbackForce: 10
+  recoilForce: 3
+  staggerDamageThreshold: 20
+  staggerCooldown: 3

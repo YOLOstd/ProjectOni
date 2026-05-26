@@ -1,25 +1,36 @@
 using UnityEngine;
+using PurrNet;
 using ProjectOni.Core;
 
 namespace ProjectOni.Combat
 {
     /// <summary>
-    /// Attached to entities to receive physical contacts.
-    /// Usually, this component passes damage to the owner's Stats component.
+    /// A networked tag component attached to collision triggers (sensors).
+    /// Acts as a sensor holding a public reference to its associated HealthComponent.
     /// </summary>
-    public class Hurtbox : MonoBehaviour
+    public class Hurtbox : NetworkBehaviour
     {
-        private IDamageable _damageable;
+        public HealthComponent Health;
 
         private void Awake()
         {
-            // Usually, the IDamageable is on the same object or parent
-            _damageable = GetComponentInParent<IDamageable>();
-        }
+            // Resolve local HealthComponent in parent if not assigned in Inspector
+            if (Health == null)
+            {
+                Health = GetComponentInParent<HealthComponent>();
+            }
 
-        public void TakeDamage(float amount)
-        {
-            _damageable?.TakeDamage(amount);
+            // Warn if missing trigger collider
+            var col = GetComponent<Collider2D>();
+            if (col == null)
+            {
+                Debug.LogWarning($"[Hurtbox] '{gameObject.name}' on parent '{transform.parent?.name}' is missing a Collider2D component! " +
+                                 $"It will not be able to detect trigger overlaps. Please add a Collider2D set as 'Is Trigger'.");
+            }
+            else if (!col.isTrigger)
+            {
+                Debug.LogWarning($"[Hurtbox] '{gameObject.name}' on parent '{transform.parent?.name}' has a Collider2D, but it is not set as 'Is Trigger'!");
+            }
         }
     }
 }

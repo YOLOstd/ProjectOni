@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using PurrNet;
@@ -21,6 +22,12 @@ namespace ProjectOni.Combat
         private NetworkIdentity _identity;
         private HashSet<int> _validParameters = new();
         private readonly List<GameObject> _activeVisuals = new();
+
+        /// <summary>
+        /// Fired locally when a spawned Hitbox or Projectile hits a Hurtbox.
+        /// Bubbles up to smart combat controllers.
+        /// </summary>
+        public event Action<Hurtbox, float> OnHitDetected;
 
         private void Awake()
         {
@@ -142,31 +149,45 @@ namespace ProjectOni.Combat
                 }
             }
 
-            if (projGO.TryGetComponent(out Projectile projectile))
+            var projectile = projGO.GetComponentInChildren<Projectile>();
+            var hitbox = projGO.GetComponentInChildren<Hitbox>();
+
+            bool isPlayer = _identity != null && _identity.GetComponent<ProjectOni.Player.PlayerController>() != null;
+            bool isOwner = _identity != null && _identity.isOwner;
+            bool shouldActivate = isOwner || !isPlayer;
+
+            if (projectile != null)
             {
-                bool isOwner = _identity != null && _identity.isOwner;
                 projectile.Initialize(direction, request.projectileSpeed, request.damage, isOwner, LayerMask.GetMask("Enemy"), request.hitVFXPrefab);
 
-                // Ghost mode: disable all physics colliders on non-owner machines.
-                if (!isOwner)
+                if (shouldActivate)
                 {
+                    projectile.OnHit += (hurtbox) => 
+                    {
+                        OnHitDetected?.Invoke(hurtbox, request.damage);
+                    };
+                }
+                else
+                {
+                    // Ghost mode: disable all physics colliders on non-owner machines.
                     foreach (var col in projGO.GetComponentsInChildren<Collider2D>())
                         col.enabled = false;
                 }
             }
-            else if (projGO.TryGetComponent(out Hitbox hitbox))
+            else if (hitbox != null)
             {
-                // Only activate the damage hitbox on the owning client.
-                // On remote clients the VFX (particle children) still play, but no collision damage fires.
-                bool isOwner = _identity != null && _identity.isOwner;
-                if (isOwner)
+                if (shouldActivate)
                 {
                     hitbox.Initialize(request.damage, request.hitboxStartTime, request.hitboxDuration);
+                    hitbox.OnHit += (hurtbox) => 
+                    {
+                        OnHitDetected?.Invoke(hurtbox, request.damage);
+                    };
                 }
                 else
                 {
                     // Ghost mode: ensure every collider on the prefab is disabled so nothing
-                    // triggers on the non-owner machine, even if the hitbox prefab had one enabled by default.
+                    // triggers on the non-owner machine.
                     foreach (var col in projGO.GetComponentsInChildren<Collider2D>())
                         col.enabled = false;
                 }

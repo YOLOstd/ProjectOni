@@ -1,8 +1,13 @@
 using UnityEngine;
+using System;
 using ProjectOni.Core;
 
 namespace ProjectOni.Combat
 {
+    /// <summary>
+    /// A decoupled, "dumb" projectile that travels and raises an event when it collides with a Hurtbox.
+    /// Handles its own local visual effects and pooling.
+    /// </summary>
     public class Projectile : MonoBehaviour, IPooledObject
     {
         private Vector2 _direction;
@@ -13,6 +18,11 @@ namespace ProjectOni.Combat
         private GameObject _hitVFX;
 
         private Rigidbody2D _rb;
+
+        /// <summary>
+        /// Raised when this projectile collides with a valid Hurtbox.
+        /// </summary>
+        public event Action<Hurtbox> OnHit;
 
         public void Initialize(Vector2 direction, float speed, float damage, bool isOwner, LayerMask hitMask, GameObject hitVFX = null)
         {
@@ -58,6 +68,7 @@ namespace ProjectOni.Combat
             _isOwner = false;
             _hitMask = 0;
             _hitVFX = null;
+            OnHit = null; // Clear all subscribers to prevent memory leaks when pooled
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -65,9 +76,9 @@ namespace ProjectOni.Combat
             // Check if layer is in hit mask
             if (((1 << collision.gameObject.layer) & _hitMask) != 0)
             {
-                if (_isOwner && collision.TryGetComponent(out IDamageable damageable))
+                if (collision.TryGetComponent(out Hurtbox hurtbox))
                 {
-                    damageable.TakeDamage(_damage);
+                    OnHit?.Invoke(hurtbox);
                 }
 
                 if (_hitVFX != null)

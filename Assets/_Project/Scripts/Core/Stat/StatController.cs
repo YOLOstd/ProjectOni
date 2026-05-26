@@ -83,7 +83,11 @@ namespace ProjectOni.Core
         /// </summary>
         public void Recalculate()
         {
-            if (_baseStats == null || _globalSettings == null) return;
+            if (_baseStats == null || _globalSettings == null)
+            {
+                Debug.LogError($"[StatController] Recalculate aborted on '{gameObject.name}': _baseStats is {_baseStats != null}, _globalSettings is {_globalSettings != null}");
+                return;
+            }
 
             _stats.Clear();
             _allConversions.Clear();
@@ -100,8 +104,9 @@ namespace ProjectOni.Core
                 CalculateStat(type);
             }
 
-            // 3. Write networked health stats (owner only, dirty-checked)
-            if (_entityState != null && _entityState.isOwner)
+            // 3. Write networked health stats (owner/server only, dirty-checked)
+            bool hasWriteAuthority = _entityState != null && (_entityState.isOwner || (_entityState.isServer && !_entityState.owner.HasValue));
+            if (hasWriteAuthority)
             {
                 float newMax = Get(StatType.Health);
                 if (!Mathf.Approximately(_entityState.MaxHealth.value, newMax))

@@ -43,14 +43,15 @@ namespace ProjectOni.Core
                 _entityState.CurrentHealth.onChangedWithOld += OnCurrentHealthSync;
                 _entityState.MaxHealth.onChangedWithOld     += OnMaxHealthSync;
 
-                // Initialise on the owner
-                if (isOwner)
+                // Initialise on the owner or server (for unowned/server-auth entities like enemies)
+                if (isOwner || isServer)
                 {
                     if (_entityState.MaxHealth.value <= 0f)
                     {
-                        _entityState.MaxHealth.value     = _baseMaxHealth;
-                        _entityState.CurrentHealth.value = _baseMaxHealth;
+                        _entityState.MaxHealth.value = _baseMaxHealth;
                     }
+                    // Reset health to maximum when spawned (initially or recycled from pool)
+                    _entityState.CurrentHealth.value = _entityState.MaxHealth.value;
                 }
             }
         }
@@ -69,22 +70,16 @@ namespace ProjectOni.Core
 
 
         /// <summary>
-        /// IDamageable entry point. Safe to call from any client —
-        /// will route through ServerRpc if the caller is not the owner.
+        /// IDamageable entry point. Directly modifies the synced state with a dead-horse guard.
         /// </summary>
         public void TakeDamage(float amount)
         {
             if (_entityState == null) return;
 
-            if (isOwner)
-            {
-                ApplyDamage(amount);
-            }
-            else
-            {
-                // Non-owner client (or server for a client-owned entity) — ask the server
-                ServerRequestDamage(amount);
-            }
+            float currentVal = _entityState.CurrentHealth.value;
+            if (currentVal <= 0f) return;
+
+            _entityState.CurrentHealth.value = Mathf.Max(0f, currentVal - amount);
         }
 
         public void Heal(float amount)
@@ -92,37 +87,6 @@ namespace ProjectOni.Core
             if (_entityState == null) return;
             if (!isOwner) return;
             _entityState.CurrentHealth.value = Mathf.Min(Max, Current + amount);
-        }
-
-        // ─── Internal ─────────────────────────────────────────────────────────
-
-        private void ApplyDamage(float amount)
-        {
-            if (IsDead) return;
-            _entityState.CurrentHealth.value = Mathf.Max(0f, Current - amount);
-        }
-
-        [ServerRpc(requireOwnership: false)]
-        private void ServerRequestDamage(float amount)
-        {
-            if (isOwner)
-            {
-                ApplyDamage(amount);
-            }
-            else
-            {
-                // Target has a client owner. Forward the damage command to the owner.
-                if (owner.HasValue)
-                {
-                    TargetApplyDamage(owner.Value, amount);
-                }
-            }
-        }
-
-        [TargetRpc]
-        private void TargetApplyDamage(PlayerID target, float amount)
-        {
-            ApplyDamage(amount);
         }
 
         // SyncVar callbacks fire on ALL clients (including the one that wrote)

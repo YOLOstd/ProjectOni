@@ -361,8 +361,6 @@ namespace ProjectOni.Combat
                 }
             }
 
-            Debug.Log($"[CombatController] Combo Transition: {nextNode.name} on {gameObject.name}. LockTime: {result.GlobalLockTime}");
-
             var hint = new NetworkedVisualHint
             {
                 animationTrigger = result.Visuals.animationTrigger,

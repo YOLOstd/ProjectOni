@@ -1,12 +1,13 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using ProjectOni.Core;
-using PurrNet;
 
 namespace ProjectOni.Combat
 {
     /// <summary>
-    /// Attached to a weapon or attack zone to deal damage.
+    /// Attached to a weapon or attack zone.
+    /// A decoupled, "dumb" collision sensor that raises an event upon hitting a Hurtbox.
     /// Expects a Collider2D set as a Trigger.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
@@ -15,6 +16,11 @@ namespace ProjectOni.Combat
         private float _damage;
         private readonly HashSet<Collider2D> _hitColliders = new();
         private Collider2D _collider;
+
+        /// <summary>
+        /// Raised when this hitbox collides with a valid Hurtbox.
+        /// </summary>
+        public event Action<Hurtbox> OnHit;
 
         private void Awake()
         {
@@ -68,6 +74,7 @@ namespace ProjectOni.Combat
                 StopCoroutine(_hitboxRoutine);
                 _hitboxRoutine = null;
             }
+            OnHit = null; // Clear all subscribers to prevent memory leaks and multiplier bugs when pooled
         }
 
         private void OnDisable()
@@ -81,25 +88,17 @@ namespace ProjectOni.Combat
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
+            // Only interact with trigger colliders (Hurtboxes)
+            if (!collision.isTrigger) return;
+
             // Avoid hitting the same collider twice in a single swing/activation
             if (_hitColliders.Contains(collision))
                 return;
 
-            if (collision.TryGetComponent(out IDamageable damageable))
+            if (collision.TryGetComponent(out Hurtbox hurtbox))
             {
                 _hitColliders.Add(collision);
-
-                // Networked interaction: Take ownership of the target if it's a networked object
-                if (collision.TryGetComponent(out NetworkIdentity targetIdentity))
-                {
-                    var hitterIdentity = GetComponentInParent<NetworkIdentity>();
-                    if (hitterIdentity != null && hitterIdentity.isOwner)
-                    {
-                        ProjectOni.Networking.NetworkedInteraction.RequestOwnershipOnHit(targetIdentity, hitterIdentity);
-                    }
-                }
-
-                damageable.TakeDamage(_damage);
+                OnHit?.Invoke(hurtbox);
             }
         }
     }

@@ -27,9 +27,9 @@ MonoBehaviour:
     sfx: {fileID: 0}
     projectilePrefab: {fileID: 1511727961467722785, guid: d12d21a65282b9a45a689dbb90e43b72, type: 3}
     projectileSpeed: 0
-    damage: 1
+    damage: 10
     spawnOffset: {x: 0, y: 0}
     hitVFXPrefab: {fileID: 0}
     lifetime: 1
     hitboxStartTime: 0
-    hitboxDuration: 1
+    hitboxDuration: 0.2

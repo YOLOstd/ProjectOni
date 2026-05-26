@@ -144,7 +144,6 @@ namespace ProjectOni.UI
                     continue;
                 }
                 int value = _stats != null ? Mathf.RoundToInt(_stats.Get(type)) : 0;
-                Debug.Log($"[CharacterStatMenuUI] Row created for {type} with value {value}");
                 row.Set(type.ToString(), value);
                 _rows[type] = row;
             }

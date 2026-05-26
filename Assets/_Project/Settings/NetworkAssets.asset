@@ -42,9 +42,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 506ca01bff7e1a7428637ca8756f7981, type: 2}
   - {fileID: 11400000, guid: 870ee68e6b6abfd43b92ef73c66c7ec9, type: 2}
   - {fileID: 11400000, guid: 0ae021ba98632f548b1e1fb511a050d4, type: 2}
-  - {fileID: 11400000, guid: 7f0d36c463c5de64b8fa4bf380ca2ca3, type: 2}
-  - {fileID: 11400000, guid: f982b75952149c048a9c72c43353cf5f, type: 2}
   - {fileID: 11400000, guid: 4bceb13557db2d74b955bdb14ccfa0fa, type: 2}
+  - {fileID: 11400000, guid: e418d0e6217114a49ab6c968496648a4, type: 2}
+  - {fileID: 11400000, guid: 213bd3ec5f79c6046b0cb1e28e4eb575, type: 2}
+  - {fileID: 11400000, guid: 8febe14684671244bb6a83aea5216aed, type: 2}
+  - {fileID: 11400000, guid: 9913f366349f120458b80f174a6b2328, type: 2}
+  - {fileID: 11400000, guid: 83b1c623739188e43b396774aecb1475, type: 2}
+  - {fileID: 11400000, guid: d76aa390dfc971942bbd32131aefd986, type: 2}
+  - {fileID: 11400000, guid: f693b7a4e40483a4b8517d1a8407e624, type: 2}
+  - {fileID: 11400000, guid: 0d5af5fb3895a604c82b6580a029dba8, type: 2}
+  - {fileID: 11400000, guid: 7f0d36c463c5de64b8fa4bf380ca2ab1, type: 2}
+  - {fileID: 11400000, guid: f982b75952149c048a9c72c43353cf5a, type: 2}
   - {fileID: 11400000, guid: 1c6f7ea0c0471224e8e972a7db31dac8, type: 2}
   _availableTypeNames:
   - UnityEngine.ScriptableObject, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
@@ -63,9 +71,17 @@ MonoBehaviour:
     Culture=neutral, PublicKeyToken=null
   - UnityEditor.Animations.AnimatorTransitionBase, UnityEditor.CoreModule, Version=0.0.0.0,
     Culture=neutral, PublicKeyToken=null
+  - UnityEditor.Rendering.BuiltIn.AssetVersion, Unity.ShaderGraph.Editor, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
+  - UnityEditor.Rendering.Universal.AssetVersion, Unity.RenderPipelines.Universal.Editor,
+    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - ProjectOni.Combat.AttackNode, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.AudioBehaviour, UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.AudioSource, UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Data.BaseStatsSO, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.Behaviour, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
@@ -73,6 +89,10 @@ MonoBehaviour:
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - UnityEngine.BoxCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - UnityEditor.Build.Profile.BuildProfile, UnityEditor.CoreModule, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
+  - UnityEditor.Rendering.BuiltIn.ShaderGraph.BuiltInMetadata, Unity.ShaderGraph.Editor,
+    Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - UnityEngine.CanvasRenderer, UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.CapsuleCollider2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
@@ -97,13 +117,29 @@ MonoBehaviour:
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - UnityEngine.Rendering.Universal.ColorLookup, Unity.RenderPipelines.Universal.Runtime,
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - ProjectOni.Combat.CombatAnimator, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Combat.CombatController, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Combat.CombatSkill, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.Component, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.Rendering.Universal.DepthOfField, Unity.RenderPipelines.Universal.Runtime,
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - ProjectOni.Player.DodgeController, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Data.EnemyDataSO, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Core.EntityState, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Data.EquipmentBlueprint, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - ProjectOni.Player.EquipmentManager, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - ProjectOni.Data.EquipmentSlotDefinition, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Data.EquipmentTraitSO, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.Rendering.Universal.FilmGrain, Unity.RenderPipelines.Universal.Runtime,
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -117,6 +153,10 @@ MonoBehaviour:
     PublicKeyToken=null
   - UnityEditor.GridPalette, UnityEditor.TilemapModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - ProjectOni.Core.HealthComponent, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Combat.Hitbox, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.UI.HorizontalLayoutGroup, UnityEngine.UI, Version=1.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.UI.HorizontalOrVerticalLayoutGroup, UnityEngine.UI, Version=1.0.0.0,
@@ -128,6 +168,8 @@ MonoBehaviour:
     Culture=neutral, PublicKeyToken=null
   - ProjectOni.Data.ItemCategoryTag, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - ProjectOni.Data.ItemData, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.UI.LayoutGroup, UnityEngine.UI, Version=1.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.Rendering.Universal.LensDistortion, Unity.RenderPipelines.Universal.Runtime,
@@ -138,7 +180,13 @@ MonoBehaviour:
     PublicKeyToken=null
   - UnityEngine.Material, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - ProjectOni.Data.MeleeWeaponTrait, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.Mesh, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - UnityEngine.MeshFilter, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - UnityEngine.MeshRenderer, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.MonoBehaviour, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEditor.MonoScript, UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral,
@@ -161,6 +209,10 @@ MonoBehaviour:
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - ParrelSync.ParrelSyncProjectSettings, ParrelSync, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - UnityEngine.ParticleSystem, UnityEngine.ParticleSystemModule, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
+  - UnityEngine.ParticleSystemRenderer, UnityEngine.ParticleSystemModule, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
   - UnityEngine.PhysicsMaterial2D, UnityEngine.Physics2DModule, Version=0.0.0.0,
     Culture=neutral, PublicKeyToken=null
   - ProjectOni.Player.Movement.PlayerAirborneState, Assembly-CSharp, Version=0.0.0.0,
@@ -169,6 +221,8 @@ MonoBehaviour:
     PublicKeyToken=null
   - ProjectOni.Player.Movement.PlayerBaseState, Assembly-CSharp, Version=0.0.0.0,
     Culture=neutral, PublicKeyToken=null
+  - ProjectOni.Player.PlayerCombat, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - ProjectOni.Player.PlayerController, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - ProjectOni.Player.Movement.PlayerDodgeState, Assembly-CSharp, Version=0.0.0.0,
@@ -222,6 +276,8 @@ MonoBehaviour:
     Culture=neutral, PublicKeyToken=null
   - UnityEditor.ShaderInclude, UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - UnityEditor.ShaderGraph.ShaderSubGraphMetadata, Unity.ShaderGraph.Editor, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
   - UnityEngine.Rendering.Universal.ShadowsMidtonesHighlights, Unity.RenderPipelines.Universal.Runtime,
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - ProjectOni.UI.SkillBarUI, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
@@ -236,10 +292,19 @@ MonoBehaviour:
     PublicKeyToken=null
   - UnityEngine.SpriteRenderer, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - ProjectOni.Core.StatController, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - PurrNet.StateMachine.StateMachine, PurrNet.Runtime, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - PurrNet.StateMachine.StateNode, PurrNet.Runtime, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
+  - ProjectOni.Data.StatModifierTrait, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.UI.StatRowUI, Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - ProjectOni.Data.StatSettingsSO, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - UnityEditor.ShaderGraph.SubGraphAsset, Unity.ShaderGraph.Editor, Version=0.0.0.0,
+    Culture=neutral, PublicKeyToken=null
   - UnityEngine.TextAsset, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - TMPro.TextMeshProUGUI, Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
@@ -262,6 +327,12 @@ MonoBehaviour:
   - TMPro.TMP_Text, Unity.TextMeshPro, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - UnityEngine.Rendering.Universal.Tonemapping, Unity.RenderPipelines.Universal.Runtime,
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+  - UnityEngine.TrailRenderer, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Data.TraitLootTable, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.UI.TraitRowUI, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.Transform, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
   - UnityEngine.EventSystems.UIBehaviour, UnityEngine.UI, Version=1.0.0.0, Culture=neutral,
@@ -278,9 +349,15 @@ MonoBehaviour:
     Culture=neutral, PublicKeyToken=null
   - UnityEngine.Rendering.VolumeProfile, Unity.RenderPipelines.Core.Runtime, Version=0.0.0.0,
     Culture=neutral, PublicKeyToken=null
+  - ProjectOni.Data.WeaponBlueprint, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Combat.WeaponSkill, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
+  - ProjectOni.Data.WeaponTrait, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
+    PublicKeyToken=null
   - UnityEngine.Rendering.Universal.WhiteBalance, Unity.RenderPipelines.Universal.Runtime,
     Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-  _bakedIds: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f000000100000001100000012000000130000001400000015000000160000001700000018000000190000001a0000001b000000
+  _bakedIds: 000000000100000002000000030000000400000005000000060000000700000008000000090000000a0000000b0000000c0000000d0000000e0000000f000000100000001100000012000000130000001400000015000000160000001700000018000000190000001a0000001b0000001c0000001d0000001e0000001f00000020000000210000002200000023000000
   _bakedAssets:
   - {fileID: 11400000, guid: 42fea4343762e4f4b8ec616966cb32cf, type: 2}
   - {fileID: 11400000, guid: 2f722bafd90bc434eb1d3e9ce51bee95, type: 2}
@@ -306,7 +383,15 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 506ca01bff7e1a7428637ca8756f7981, type: 2}
   - {fileID: 11400000, guid: 870ee68e6b6abfd43b92ef73c66c7ec9, type: 2}
   - {fileID: 11400000, guid: 0ae021ba98632f548b1e1fb511a050d4, type: 2}
-  - {fileID: 11400000, guid: 7f0d36c463c5de64b8fa4bf380ca2ca3, type: 2}
-  - {fileID: 11400000, guid: f982b75952149c048a9c72c43353cf5f, type: 2}
   - {fileID: 11400000, guid: 4bceb13557db2d74b955bdb14ccfa0fa, type: 2}
+  - {fileID: 11400000, guid: e418d0e6217114a49ab6c968496648a4, type: 2}
+  - {fileID: 11400000, guid: 213bd3ec5f79c6046b0cb1e28e4eb575, type: 2}
+  - {fileID: 11400000, guid: 8febe14684671244bb6a83aea5216aed, type: 2}
+  - {fileID: 11400000, guid: 9913f366349f120458b80f174a6b2328, type: 2}
+  - {fileID: 11400000, guid: 83b1c623739188e43b396774aecb1475, type: 2}
+  - {fileID: 11400000, guid: d76aa390dfc971942bbd32131aefd986, type: 2}
+  - {fileID: 11400000, guid: f693b7a4e40483a4b8517d1a8407e624, type: 2}
+  - {fileID: 11400000, guid: 0d5af5fb3895a604c82b6580a029dba8, type: 2}
+  - {fileID: 11400000, guid: 7f0d36c463c5de64b8fa4bf380ca2ab1, type: 2}
+  - {fileID: 11400000, guid: f982b75952149c048a9c72c43353cf5a, type: 2}
   - {fileID: 11400000, guid: 1c6f7ea0c0471224e8e972a7db31dac8, type: 2}

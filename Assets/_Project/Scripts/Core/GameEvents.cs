@@ -1,6 +1,7 @@
 using System;
 using ProjectOni.Data;
 using ProjectOni.Player;
+using ProjectOni.Enemies;
 
 namespace ProjectOni.Core
 {
@@ -22,11 +23,13 @@ namespace ProjectOni.Core
 
         // Enemy/Boss events
         public static Action OnBossDefeated;
+        public static Action<EnemyController> OnEnemyDied;
 
         // Helpers
         public static void TriggerWeaponSwapped(EquipmentManager manager, EquipmentInstance activeWeapon) => OnWeaponSwapped?.Invoke(manager, activeWeapon);
         public static void TriggerEquipmentSlotChanged(EquipmentManager manager, EquipmentSlotDefinition slot, EquipmentInstance item) => OnEquipmentSlotChanged?.Invoke(manager, slot, item);
         public static void TriggerStatsRecalculated(StatController stats) => OnStatsRecalculated?.Invoke(stats);
         public static void TriggerBossDefeated() => OnBossDefeated?.Invoke();
+        public static void TriggerEnemyDied(EnemyController enemy) => OnEnemyDied?.Invoke(enemy);
     }
 }

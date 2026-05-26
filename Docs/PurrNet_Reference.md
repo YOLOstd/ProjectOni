@@ -22,11 +22,12 @@ Networking logic is encapsulated in `NetworkModule` classes.
 Automatically synchronizes values across the network.
 - **Buffering**: Handles late-joiners automatically.
 - **OnChanged**: You can subscribe to value changes.
+- **Built on NetworkModule**: Since `SyncVar` is built on `NetworkModule`, you can create your own custom networked types.
 
 #### Buffered RPCs
 For manually syncing state (like an animation state or game phase):
 ```csharp
-[ObserversRPC(bufferLast: true)]
+[ObserversRpc(bufferLast: true)]
 private void RpcSyncState(MyState newState) {
     // This will be called for all clients, including late joiners.
 }
@@ -34,11 +35,15 @@ private void RpcSyncState(MyState newState) {
 
 ## 📡 Communication (RPCs)
 
-- **ObserversRPC**: Server -> All Clients.
-- **ServerRPC**: Client -> Server.
-- **TargetRPC**: Server -> Specific Client.
+- **ObserversRpc**: Server -> All Clients.
+- **ServerRpc**: Client -> Server.
+- **TargetRpc**: Server -> Specific Client.
 - **Generic RPCs**: Supported for flexible data types.
 - **Awaitable RPCs**: Support for `async/await` patterns.
+- **Static RPCs**: Support for static method RPCs.
+
+> [!NOTE]
+> RPC attributes support the `runLocally: true` parameter (e.g., `[ServerRpc(runLocally: true)]`), which is a highly used feature for making RPCs execute instantly on the caller's side.
 
 ## ⚖️ Authority & Ownership
 
