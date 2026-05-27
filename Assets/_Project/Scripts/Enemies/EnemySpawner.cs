@@ -37,9 +37,10 @@ namespace ProjectOni.Enemies
             }
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
             CleanupSpawnedListeners();
+            base.OnDestroy();
         }
 
         private IEnumerator SpawnAfterDelay(float delay)
@@ -54,10 +55,23 @@ namespace ProjectOni.Enemies
             
             _spawnedEnemy = Instantiate(_enemyPrefab, transform.position, transform.rotation);
             
-            // Safety net: explicitly register with PurrNet if IL-weaver didn't auto-spawn it
-            if (_spawnedEnemy != null && NetworkManager.main != null)
+            if (_spawnedEnemy != null)
             {
-                NetworkManager.main.Spawn(_spawnedEnemy);
+                // Prep initial SyncVars BEFORE spawning on the network to ensure they are packed in the spawn payload
+                var entityState = _spawnedEnemy.GetComponentInChildren<EntityState>();
+                var health = _spawnedEnemy.GetComponentInChildren<HealthComponent>();
+                if (entityState != null && health != null)
+                {
+                    float initialMax = entityState.MaxHealth.value > 0f ? entityState.MaxHealth.value : health.BaseMaxHealth;
+                    entityState.MaxHealth.value = initialMax;
+                    entityState.CurrentHealth.value = initialMax;
+                }
+
+                // Safety net: explicitly register with PurrNet if IL-weaver didn't auto-spawn it
+                if (NetworkManager.main != null)
+                {
+                    NetworkManager.main.Spawn(_spawnedEnemy);
+                }
             }
             
             if (_respawnOnDeath && _spawnedEnemy != null)

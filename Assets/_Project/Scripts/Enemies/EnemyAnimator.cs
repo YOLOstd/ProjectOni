@@ -61,6 +61,8 @@ namespace ProjectOni.Enemies
                 _anim?.Play("Idle", 0, 0f);
                 _anim?.Update(0f); // Forces animation graph evaluation this frame — prevents dead-pose flicker
                 _deathEffect?.ResetEffect(); // Ensure visual/dissolve states are completely reset for pooling
+                foreach (var col in GetComponentsInChildren<Collider2D>(true))
+                    col.enabled = true;
             }
         }
 

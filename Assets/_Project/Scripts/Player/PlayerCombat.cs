@@ -132,6 +132,12 @@ namespace ProjectOni.Player
             Debug.Log($"[PlayerCombat] HandlePlayerHitTarget triggered: isOwner={isOwner}, enemyHurtbox={enemyHurtbox?.gameObject.name}, damage={damage}");
             if (!isOwner) return; // Only process hit on attacking player's owning client
 
+            // 1. INSTANT LOCAL PREDICTION: Predict damage on the target's HealthComponent immediately on the client
+            if (enemyHurtbox != null && enemyHurtbox.Health != null)
+            {
+                enemyHurtbox.Health.PredictDamageLocally(damage);
+            }
+
             // Verify target is an enemy by getting its EnemyCombat component
             var enemyCombat = enemyHurtbox.GetComponentInParent<ProjectOni.Enemies.EnemyCombat>();
             Debug.Log($"[PlayerCombat] Resolved EnemyCombat: {enemyCombat != null}");

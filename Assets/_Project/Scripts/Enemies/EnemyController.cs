@@ -38,31 +38,29 @@ namespace ProjectOni.Enemies
         protected override void OnSpawned()
         {
             base.OnSpawned();
-
-            // Re-enable colliders on ALL clients (disabled by OnDied in EnemyAnimator)
+            
+            // Re-enable colliders disabled by death on all clients
             foreach (var col in GetComponentsInChildren<Collider2D>(true))
                 col.enabled = true;
 
-            // Zero rigidbody on ALL machines — prevents knockback from previous life carrying over.
-            _rb.linearVelocity = Vector2.zero;
+            // Explicitly declare the body type based on authority ONCE.
+            // In Host mode, isServer is true, so it guarantees Dynamic stays Dynamic.
+            _rb.bodyType = isServer ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
 
             if (!isServer)
             {
-                _rb.bodyType = RigidbodyType2D.Kinematic;
-                return;
+                _rb.linearVelocity = Vector2.zero;
+                return; // Pure clients stop here
             }
 
-            // Server: reset simulation state
+            // --- SERVER ONLY BELOW THIS LINE ---
             _frameVelocity    = Vector2.zero;
             _externalVelocity = Vector2.zero;
 
-            // Host/Server setup: initialize StatController
             var entityState = GetComponent<EntityState>();
-            var stats = GetComponent<StatController>();
+            var stats       = GetComponent<StatController>();
             if (stats != null && entityState != null)
-            {
                 stats.Initialize(entityState);
-            }
         }
 
         private void FixedUpdate()
